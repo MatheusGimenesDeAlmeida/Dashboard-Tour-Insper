@@ -16,7 +16,9 @@ O arquivo [`render.yaml`](render.yaml) descreve o serviço. Para publicar:
 1. Em <https://dashboard.render.com/blueprints>, clique em **New Blueprint Instance** e escolha este repositório.
 2. Confirme. O Render gera os segredos, instala o Python 3.12 e inicia `python run.py` na porta que ele define.
 
-Cada `git push` na branch `main` gera um novo deploy automaticamente.
+O serviço foi criado a partir da URL pública do repositório, então um `git push` **não** publica sozinho: depois do
+push, abra o Blueprint `tour-insper` no Render e clique em **Manual sync** (ou **Manual Deploy** no serviço). Para
+publicar automaticamente a cada push, conecte o GitHub ao Render (Account Settings › Git Providers).
 
 **Limitações do plano gratuito**
 

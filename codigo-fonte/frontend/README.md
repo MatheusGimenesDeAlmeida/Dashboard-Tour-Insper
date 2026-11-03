@@ -39,4 +39,5 @@ Abra http://localhost:4200: o Angular encaminha as chamadas `/api` para o servid
 
 ## Deploy
 
-O Render roda `npm ci && npm run build` a cada push na `main` (veja `render.yaml` na raiz do repositório).
+No deploy, o Render roda `npm ci && npm run build` antes de iniciar o servidor (veja `render.yaml` e o README na
+raiz do repositório).
