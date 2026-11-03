@@ -20,6 +20,22 @@ O serviço foi criado a partir da URL pública do repositório, então um `git p
 push, abra o Blueprint `tour-insper` no Render e clique em **Manual sync** (ou **Manual Deploy** no serviço). Para
 publicar automaticamente a cada push, conecte o GitHub ao Render (Account Settings › Git Providers).
 
+### E-mail de verdade (Brevo)
+
+Sem configuração, os e-mails são simulados e aparecem só em `/caixa-de-entrada`. O plano gratuito do Render
+bloqueia as portas de SMTP, então o envio real usa a API do [Brevo](https://www.brevo.com) (grátis até 300 e-mails/dia):
+
+1. Crie uma conta no Brevo e, em **Senders, Domains & Dedicated IPs › Senders**, adicione e confirme o e-mail
+   remetente (pode ser um Gmail).
+2. Em **SMTP & API › API Keys**, gere uma chave.
+3. No Render, abra o serviço `tour-insper` › **Environment** e adicione:
+   - `BREVO_API_KEY` = a chave do passo 2
+   - `EMAIL_FROM` = `Tours Insper <o-email-confirmado@gmail.com>`
+4. Salve. O Render reinicia o serviço sozinho.
+
+Os endereços fictícios dos dados de exemplo (`@exemplo.com`) continuam só na caixa local, marcados como
+"simulado". Para mudar a lista, use `EMAIL_SIMULATED_DOMAINS` (domínios separados por vírgula). WhatsApp segue simulado.
+
 **Limitações do plano gratuito**
 
 - O serviço hiberna após ~15 min sem acesso; a primeira visita depois disso leva uns 50 s para acordar.

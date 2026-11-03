@@ -39,7 +39,8 @@ encerramento no CRM acontecerem sozinhos.
   `SELECT … FOR UPDATE` no grupo.
 - **Itens [A CONFIRMAR]** seguem os padrões da seção 19 e são configuráveis em Admin › Configurações (prazos,
   grade, capacidade, reserva obrigatória, cursos, campos ocultáveis, textos das mensagens, retenção LGPD).
-- **Integrações.** E-mail real via SMTP quando `SMTP_HOST` estiver definido; sem ele, vai para a caixa local.
+- **Integrações.** E-mail real pela API do Brevo quando `BREVO_API_KEY` estiver definido (ou via SMTP com `SMTP_HOST`); sem
+  eles, vai para a caixa local. Endereços de `EMAIL_SIMULATED_DOMAINS` (padrão `exemplo.com`) nunca saem de verdade.
   CRM: `CRM_ADAPTER=mock` (padrão) ou `webhook` com `CRM_WEBHOOK_URL`/`CRM_WEBHOOK_SECRET` (HMAC-SHA256 no
   cabeçalho `X-Signature-SHA256`), além de exportação CSV. Webhooks de eventos: `WEBHOOK_URL`/`WEBHOOK_SECRET`.
   WhatsApp: simulado (só para quem deu opt-in).
@@ -54,6 +55,7 @@ encerramento no CRM acontecerem sozinhos.
 ## Variáveis de ambiente
 
 `APP_ENV` (`dev` habilita acesso rápido, caixa local e simulação de tempo; use `prod` em produção),
-`APP_BASE_URL`, `DATABASE_PATH`, `AUTH_SECRET`, `TOKEN_SIGNING_SECRET`, `CPF_ENCRYPTION_KEY`, `SMTP_HOST`,
+`APP_BASE_URL`, `DATABASE_PATH`, `AUTH_SECRET`, `TOKEN_SIGNING_SECRET`, `CPF_ENCRYPTION_KEY`, `BREVO_API_KEY`,
+`EMAIL_SIMULATED_DOMAINS`, `SMTP_HOST`,
 `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `CRM_ADAPTER`, `CRM_WEBHOOK_URL`, `CRM_WEBHOOK_SECRET`,
 `WEBHOOK_URL`, `WEBHOOK_SECRET`, `PORT`, `HOST`.

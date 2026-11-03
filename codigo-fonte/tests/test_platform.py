@@ -481,5 +481,66 @@ class ApiPrivacyTests(unittest.TestCase):
         self.assertIn("realized_rate", json.loads(body))
 
 
+class EmailAdapterTests(unittest.TestCase):
+    """Envio real pelo Brevo, testado contra um servidor falso local (nada sai para a internet)."""
+
+    def setUp(self):
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        self.calls = []
+        test = self
+
+        class FakeBrevo(BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                test.calls.append({"key": self.headers.get("api-key"), "body": body})
+                ok = body["to"][0]["email"] != "recusa@teste.com"
+                self.send_response(201 if ok else 400)
+                self.end_headers()
+                self.wfile.write(b'{"messageId":"x"}' if ok else b'{"message":"sender not valid"}')
+
+            def log_message(self, *a):
+                pass
+
+        self.httpd = HTTPServer(("127.0.0.1", 0), FakeBrevo)
+        threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
+        self.env = {"BREVO_API_KEY": "chave-teste", "EMAIL_FROM": "Tours Insper <tours@teste.com>",
+                    "BREVO_API_URL": f"http://127.0.0.1:{self.httpd.server_port}/v3/smtp/email"}
+        self.saved = {k: os.environ.get(k) for k in self.env}
+        os.environ.update(self.env)
+
+    def tearDown(self):
+        self.httpd.shutdown()
+        for k, v in self.saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+    def test_brevo_sends_real_address_with_attachment(self):
+        adapter = notify.email_adapter()
+        self.assertEqual(adapter.name, "brevo")
+        status = adapter.send("candidato@gmail.com", "Assunto", "texto", "<p>html</p>",
+                              [{"filename": "visita.ics", "content_type": "text/calendar", "content": "BEGIN:VCALENDAR"}])
+        self.assertEqual(status, "enviado")
+        call = self.calls[0]
+        self.assertEqual(call["key"], "chave-teste")
+        self.assertEqual(call["body"]["sender"], {"name": "Tours Insper", "email": "tours@teste.com"})
+        self.assertEqual(call["body"]["to"], [{"email": "candidato@gmail.com"}])
+        self.assertEqual(call["body"]["attachment"][0]["name"], "visita.ics")
+
+    def test_fictional_addresses_stay_in_local_inbox(self):
+        self.assertEqual(notify.email_adapter().send("lucas.martins@exemplo.com", "s", "t", "<p>h</p>", []), "simulado")
+        self.assertEqual(self.calls, [])
+
+    def test_brevo_error_is_reported(self):
+        with self.assertRaises(RuntimeError) as ctx:
+            notify.email_adapter().send("recusa@teste.com", "s", "t", "<p>h</p>", [])
+        self.assertIn("sender not valid", str(ctx.exception))
+
+    def test_without_key_uses_local_inbox(self):
+        os.environ.pop("BREVO_API_KEY")
+        self.assertEqual(notify.email_adapter().name, "local")
+
+
 if __name__ == "__main__":
     unittest.main()

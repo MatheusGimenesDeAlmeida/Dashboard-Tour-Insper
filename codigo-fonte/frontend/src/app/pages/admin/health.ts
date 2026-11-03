@@ -82,8 +82,9 @@ export class Health implements OnInit {
     return [
       { icon: 'schedule', label: 'Relógio da plataforma', value: dateTime(r.now),
         meta: r.clock_offset_hours ? `adiantado ${num(r.clock_offset_hours)} h (simulação)` : 'tempo real' },
-      { icon: 'mail', label: 'E-mail', value: r.email_adapter === 'local' ? 'Caixa local' : 'SMTP',
-        meta: r.email_adapter === 'local' ? 'simulado — defina SMTP_HOST para envio real' : 'envio real' },
+      { icon: 'mail', label: 'E-mail', value: ({ local: 'Caixa local', brevo: 'Brevo (API)', smtp: 'SMTP' } as Record<string, string>)[r.email_adapter] ?? r.email_adapter,
+        meta: r.email_adapter === 'local' ? 'simulado — defina BREVO_API_KEY para envio real'
+          : 'envio real; endereços fictícios (@exemplo.com) ficam na caixa local' },
       { icon: 'sync_alt', label: 'CRM', value: r.crm_adapter === 'mock' ? 'Simulado' : 'Webhook', meta: r.crm.map((c) => `${c.n} ${c.status}`).join(' · ') || 'sem operações' },
       { icon: 'chat', label: 'WhatsApp', value: 'Simulado', meta: 'aguarda conta WhatsApp Business' },
       { icon: 'outgoing_mail', label: 'Mensagens', value: String(r.notifications.reduce((s, x) => s + x.n, 0)),

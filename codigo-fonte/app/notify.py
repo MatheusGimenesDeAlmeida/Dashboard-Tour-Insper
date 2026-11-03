@@ -1,10 +1,14 @@
 """Serviço de notificações: modelos editáveis (M1..M12), fila com deduplicação e adaptadores de e-mail e WhatsApp."""
+import base64
 import html
 import json
 import re
 import smtplib
+import urllib.error
+import urllib.request
 from datetime import timedelta
 from email.message import EmailMessage
+from email.utils import parseaddr
 
 from . import core
 from .core import iso, now_utc, parse_iso
@@ -102,12 +106,14 @@ def make_ics(booking_id, protocol, slot_start, duration_min, location, summary="
 
 
 # ---------------------------------------------------------------- adaptadores
+# Cada adaptador devolve a situação da notificação: "enviado" (saiu de verdade, ou caixa local em desenvolvimento)
+# ou "simulado" (ficou só na caixa local de propósito).
 class LocalInboxEmailAdapter:
     """Desenvolvimento: as mensagens ficam na caixa de entrada local (/caixa-de-entrada), no lugar do Mailpit."""
     name = "local"
 
     def send(self, to, subject, text, html_body, attachments):
-        return True
+        return "enviado"
 
 
 class SmtpEmailAdapter:
@@ -133,7 +139,51 @@ class SmtpEmailAdapter:
             if self.user:
                 s.login(self.user, self.password)
             s.send_message(msg)
-        return True
+        return "enviado"
+
+
+class BrevoEmailAdapter:
+    """Envio real pela API HTTP do Brevo (https://www.brevo.com). Útil onde as portas de SMTP são bloqueadas,
+    como no plano gratuito do Render. O remetente (EMAIL_FROM) precisa estar verificado na conta do Brevo."""
+    name = "brevo"
+
+    def __init__(self):
+        self.api_key = core.env("BREVO_API_KEY")
+        self.url = core.env("BREVO_API_URL", "https://api.brevo.com/v3/smtp/email")
+        sender_name, sender_email = parseaddr(core.env("EMAIL_FROM", ""))
+        self.sender = {"name": sender_name or "Insper · Tours no campus", "email": sender_email}
+
+    def send(self, to, subject, text, html_body, attachments):
+        if not self.sender["email"]:
+            raise RuntimeError("Defina EMAIL_FROM com um remetente verificado no Brevo.")
+        payload = {"sender": self.sender, "to": [{"email": to}], "subject": subject, "textContent": text, "htmlContent": html_body}
+        if attachments:
+            payload["attachment"] = [{"name": a["filename"], "content": base64.b64encode(a["content"].encode()).decode()}
+                                     for a in attachments]
+        req = urllib.request.Request(self.url, data=json.dumps(payload).encode(), method="POST", headers={
+            "api-key": self.api_key, "Content-Type": "application/json", "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                r.read()
+        except urllib.error.HTTPError as e:  # a mensagem do Brevo explica o motivo (remetente, cota diária…)
+            raise RuntimeError(f"Brevo {e.code}: {e.read().decode(errors='replace')[:300]}") from None
+        return "enviado"
+
+
+class DemoSafeEmailAdapter:
+    """Envia de verdade só para endereços reais. Os e-mails fictícios dos dados de exemplo (ex.: @exemplo.com)
+    ficam na caixa local como "simulado", para a demonstração não disparar mensagens para endereços inexistentes."""
+
+    def __init__(self, real):
+        self.real = real
+        self.name = real.name
+        domains = core.env("EMAIL_SIMULATED_DOMAINS", "exemplo.com,example.com")
+        self.simulated = {d.strip().lower() for d in domains.split(",") if d.strip()}
+
+    def send(self, to, subject, text, html_body, attachments):
+        if to.rsplit("@", 1)[-1].lower() in self.simulated:
+            return "simulado"
+        return self.real.send(to, subject, text, html_body, attachments)
 
 
 class MockWhatsAppAdapter:
@@ -145,7 +195,11 @@ class MockWhatsAppAdapter:
 
 
 def email_adapter():
-    return SmtpEmailAdapter() if core.env("SMTP_HOST") else LocalInboxEmailAdapter()
+    if core.env("BREVO_API_KEY"):
+        return DemoSafeEmailAdapter(BrevoEmailAdapter())
+    if core.env("SMTP_HOST"):
+        return DemoSafeEmailAdapter(SmtpEmailAdapter())
+    return LocalInboxEmailAdapter()
 
 
 def whatsapp_adapter():
@@ -185,8 +239,7 @@ def flush(conn, limit=200):
     for n in pending:
         try:
             if n["channel"] == "email":
-                email.send(n["recipient"], n["subject"], n["body_text"], n["body_html"], json.loads(n["attachments"]))
-                status = "enviado"
+                status = email.send(n["recipient"], n["subject"], n["body_text"], n["body_html"], json.loads(n["attachments"]))
             else:
                 wa.send(n["recipient"], n["body_text"])
                 status = "simulado"
