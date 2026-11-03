@@ -1,0 +1,129 @@
+// Tema global. Identidade do Insper: títulos em serifa (Source Serif 4), texto em Inter,
+// tinta #0E171D, vermelho só na ação principal e amarelo só em etiquetas de status.
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (primary: mat.$red-palette, tertiary: mat.$orange-palette, theme-type: light),
+    typography: (plain-family: 'Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+                 brand-family: '"Source Serif 4", Georgia, serif'),
+    density: 0,
+  ));
+
+  // Cores do Material ajustadas para a marca
+  --mat-sys-primary: #e50505;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #ffe3df;
+  --mat-sys-on-primary-container: #5c0000;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-low: #fafafa;
+  --mat-sys-surface-container: #f4f4f3;
+  --mat-sys-surface-container-high: #efefee;
+  --mat-sys-on-surface: #0e171d;
+  --mat-sys-on-surface-variant: #4a555c;
+  --mat-sys-outline: #b9bfc3;
+  --mat-sys-outline-variant: #e3e5e6;
+
+  // Tokens próprios da aplicação
+  --ink: #0e171d;
+  --ink-2: #3a444b;
+  --muted: #6c7880;
+  --line: #e6e8e9;
+  --page: #f5f5f3;
+  --card: #ffffff;
+  --red: #e50505;
+  --red-dark: #c40404;
+  --red-soft: #fff1ef;
+  --yellow: #ffcc00;
+  --yellow-soft: #fff6d1;
+  --ok: #1e7a46;
+  --ok-soft: #e4f3ea;
+  --info: #1f4e79;
+  --info-soft: #e8eff6;
+  --err: #b42318;
+  --err-soft: #fcebea;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --radius-lg: 24px;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 2px rgba(14, 23, 29, .04), 0 10px 30px rgba(14, 23, 29, .06);
+  --shadow-up: 0 2px 6px rgba(14, 23, 29, .06), 0 18px 44px rgba(14, 23, 29, .12);
+  --wrap: 1160px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 700; letter-spacing: -.01em; line-height: 1.15; margin: 0 0 .4em; color: var(--ink); }
+h1 { font-size: clamp(30px, 4.4vw, 46px); }
+h2 { font-size: clamp(22px, 2.6vw, 28px); }
+h3 { font-size: 19px; }
+p { margin: 0 0 1em; }
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+.narrow { max-width: 640px; margin: 0 auto; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--red); margin: 0 0 10px; }
+.lead { font-size: 18px; color: var(--ink-2); max-width: 60ch; }
+.muted { color: var(--muted); }
+.page { padding-top: 40px; padding-bottom: 96px; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+@media (max-width: 599px) { .card { padding: 18px; border-radius: 20px; } }
+
+.card-title { display: flex; align-items: center; gap: 10px; font-family: var(--sans); font-size: 17px; font-weight: 600; margin: 0 0 16px; }
+.card-title mat-icon { color: var(--muted); }
+
+// Etiquetas de status
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; background: var(--mat-sys-surface-container); color: var(--ink-2); white-space: nowrap;
+  &.ok { background: var(--ok-soft); color: var(--ok); }
+  &.warn { background: var(--yellow-soft); color: #7a5b00; }
+  &.err { background: var(--err-soft); color: var(--err); }
+  &.info { background: var(--info-soft); color: var(--info); }
+}
+
+.notice {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-sm);
+  background: var(--info-soft); color: var(--info); font-size: 15px;
+  mat-icon { flex: none; }
+  &.error { background: var(--err-soft); color: var(--err); }
+  &.warn { background: var(--yellow-soft); color: #6b5000; }
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+// Botões do Material com cantos de pílula e altura confortável
+.mat-mdc-unelevated-button, .mat-mdc-outlined-button, .mat-mdc-button {
+  --mat-button-filled-container-height: 48px;
+  --mat-button-outlined-container-height: 48px;
+  --mat-button-text-container-height: 48px;
+  --mat-button-filled-horizontal-padding: 24px;
+  --mat-button-outlined-horizontal-padding: 22px;
+  font-weight: 600 !important;
+}
+.btn-dark.mat-mdc-unelevated-button { --mat-button-filled-container-color: var(--ink); --mat-button-filled-label-text-color: #fff; }
+
+.mat-mdc-snack-bar-container.snack-error { --mat-snack-bar-container-color: var(--err); --mat-snack-bar-supporting-text-color: #fff; }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--red) 45%, transparent); outline-offset: 2px; }

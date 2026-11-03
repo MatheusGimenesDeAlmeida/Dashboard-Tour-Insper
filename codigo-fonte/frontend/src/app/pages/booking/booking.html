@@ -1,0 +1,268 @@
+<div class="wrap page">
+  @if (loadError(); as msg) {
+    <div class="narrow">
+      <h1>Não foi possível carregar</h1>
+      <div class="notice error" role="alert"><mat-icon>error</mat-icon>{{ msg }}</div>
+    </div>
+  } @else if (blocked(); as msg) {
+    <div class="narrow">
+      <p class="eyebrow">Reagendar</p>
+      <h1>Não é possível reagendar</h1>
+      <div class="notice warn"><mat-icon>info</mat-icon>{{ msg }}</div>
+      <p class="actions top-gap"><a mat-stroked-button [routerLink]="['/minha-visita', reagendar()]">Voltar para minha visita</a></p>
+    </div>
+  } @else if (!cfg()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+  } @else if (step() === 3 && result(); as r) {
+    <!-- Passo 3: confirmação -->
+    <div class="narrow success">
+      <div class="check" aria-hidden="true"><mat-icon>check</mat-icon></div>
+      <h1 tabindex="-1">{{ isReschedule() ? 'Visita reagendada' : 'Visita agendada!' }}</h1>
+      <p class="lead">
+        {{ isReschedule() ? 'Mandamos os novos detalhes por e-mail.'
+          : 'Mandamos tudo por e-mail. Você recebe o nome do embaixador assim que ele confirmar.' }}
+      </p>
+      <app-ticket [booking]="r" />
+      <div class="actions center top-gap">
+        <a mat-flat-button class="btn-dark" [href]="icsUrl()"><mat-icon>event</mat-icon> Adicionar ao calendário</a>
+        <a mat-stroked-button [routerLink]="manageUrl()">Gerenciar minha visita</a>
+      </div>
+    </div>
+  } @else {
+    <header class="head">
+      <p class="eyebrow">{{ isReschedule() ? 'Reagendar · ' + current()?.protocol : 'Visite o campus' }}</p>
+      <h1>{{ step() === 2 ? 'Seus dados' : isReschedule() ? 'Escolha o novo horário' : 'Agende sua visita' }}</h1>
+      @if (step() === 1) {
+        <p class="lead">
+          @if (current(); as b) { Visita atual: {{ b.date_label }}, às {{ b.time_label }}. }
+          @else { Tour de cerca de 1 hora com um aluno embaixador. Não precisa estar inscrito no vestibular. }
+        </p>
+      }
+      <ol class="progress" aria-label="Etapas">
+        @for (label of stepLabels(); track label; let i = $index) {
+          <li [class.on]="i + 1 === stepIndex()" [class.done]="i + 1 < stepIndex()"
+              [attr.aria-current]="i + 1 === stepIndex() ? 'step' : null">
+            <span class="n">
+              @if (i + 1 < stepIndex()) { <mat-icon>check</mat-icon> } @else { {{ i + 1 }} }
+            </span>
+            <span class="l">{{ label }}</span>
+          </li>
+        }
+      </ol>
+    </header>
+
+    <div class="layout">
+      <div class="main">
+        @if (step() === 1) {
+          <!-- Passo 1: pessoas, dia e horário -->
+          <section class="card">
+            <h2 class="card-title"><mat-icon>group</mat-icon> Quantas pessoas vêm?</h2>
+            <div class="party">
+              <div class="counter" role="group" aria-label="Número de pessoas, contando com você">
+                <button mat-icon-button type="button" aria-label="Menos uma pessoa"
+                        [disabled]="party() <= 1 || isReschedule()" (click)="setParty(party() - 1)"><mat-icon>remove</mat-icon></button>
+                <output aria-live="polite">{{ partyLabel() }}</output>
+                <button mat-icon-button type="button" aria-label="Mais uma pessoa"
+                        [disabled]="party() >= cfg()!.group_capacity || isReschedule()" (click)="setParty(party() + 1)"><mat-icon>add</mat-icon></button>
+              </div>
+              <p class="muted">Contando com você. Até {{ cfg()!.group_capacity }} pessoas por agendamento.</p>
+            </div>
+          </section>
+
+          <section class="card when">
+            @if (loadingSlots()) { <mat-progress-bar mode="indeterminate" class="bar" aria-label="Atualizando horários" /> }
+            <div class="cal">
+              <h2 class="card-title"><mat-icon>calendar_month</mat-icon> Escolha o dia</h2>
+              @if (openDays().size) {
+                <mat-calendar [selected]="dayDate()" [startAt]="dayDate()" [minDate]="minDate()" [maxDate]="maxDate()"
+                              [dateFilter]="dateFilter()" (selectedChange)="pickDay($event)" />
+              } @else {
+                <div class="empty"><mat-icon>event_busy</mat-icon>Não há horários abertos para {{ partyLabel().toLowerCase() }} no momento.</div>
+              }
+            </div>
+            <div class="times">
+              <h2 class="card-title"><mat-icon>schedule</mat-icon> Escolha o horário</h2>
+              @if (day(); as d) {
+                <p class="day-label">{{ dateLong(d) }}</p>
+                <div class="slots" role="listbox" aria-label="Horários do dia">
+                  @for (s of daySlots(); track s.slot_start) {
+                    <button type="button" class="slot" role="option" [disabled]="!s.available"
+                            [class.on]="selected()?.slot_start === s.slot_start"
+                            [attr.aria-selected]="selected()?.slot_start === s.slot_start"
+                            [attr.aria-label]="hhmm(s.time) + ': ' + slotLabel(s)" (click)="selected.set(s)">
+                      <span class="t">{{ hhmm(s.time) }}</span>
+                      <span class="v">{{ slotLabel(s) }}</span>
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="muted">Escolha um dia no calendário.</p>
+              }
+            </div>
+          </section>
+
+          @if (!isReschedule()) {
+            <p class="muted center">Prefere conhecer agora?
+              <a [href]="cfg()!.virtual_tour_url" target="_blank" rel="noopener">Faça o tour virtual</a></p>
+          }
+        } @else {
+          <!-- Passo 2: dados do candidato -->
+          <form id="booking-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <input class="hp" type="text" formControlName="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+            <section class="card">
+              <h2 class="card-title"><mat-icon>person</mat-icon> Seus dados</h2>
+              <div class="grid">
+                <mat-form-field class="full">
+                  <mat-label>Nome completo</mat-label>
+                  <input matInput formControlName="full_name" autocomplete="name">
+                  @if (error('full_name'); as e) { <mat-error>{{ e }}</mat-error> }
+                </mat-form-field>
+                @if (!hidden('cpf')) {
+                  <mat-form-field>
+                    <mat-label>CPF</mat-label>
+                    <input matInput formControlName="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" (input)="mask('cpf')">
+                    <mat-hint>Pedido por segurança na entrada do campus.</mat-hint>
+                    @if (error('cpf'); as e) { <mat-error>{{ e }}</mat-error> }
+                  </mat-form-field>
+                }
+                <mat-form-field>
+                  <mat-label>Celular com DDD</mat-label>
+                  <input matInput formControlName="phone" type="tel" autocomplete="tel" placeholder="(11) 91234-5678" (input)="mask('phone')">
+                  @if (error('phone'); as e) { <mat-error>{{ e }}</mat-error> }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>E-mail</mat-label>
+                  <input matInput formControlName="email" type="email" autocomplete="email">
+                  @if (error('email'); as e) { <mat-error>{{ e }}</mat-error> }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Confirme o e-mail</mat-label>
+                  <input matInput formControlName="email_confirm" type="email" autocomplete="off" (paste)="$event.preventDefault()">
+                  @if (error('email_confirm'); as e) { <mat-error>{{ e }}</mat-error> }
+                </mat-form-field>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2 class="card-title"><mat-icon>school</mat-icon> Sobre a visita</h2>
+              <div class="grid">
+                <mat-form-field>
+                  <mat-label>Curso de interesse</mat-label>
+                  <mat-select formControlName="course_interest">
+                    @for (c of cfg()!.courses; track c) { <mat-option [value]="c">{{ c }}</mat-option> }
+                  </mat-select>
+                  @if (error('course_interest'); as e) { <mat-error>{{ e }}</mat-error> }
+                </mat-form-field>
+                @if (cfg()!.languages.length > 1 && !hidden('language')) {
+                  <mat-form-field>
+                    <mat-label>Idioma do tour</mat-label>
+                    <mat-select formControlName="language">
+                      @for (l of cfg()!.languages; track l) { <mat-option [value]="l">{{ l }}</mat-option> }
+                    </mat-select>
+                    <mat-hint>Outros idiomas dependem dos embaixadores.</mat-hint>
+                  </mat-form-field>
+                }
+              </div>
+
+              <fieldset class="choice" [class.invalid]="error('is_treineiro')">
+                <legend>Você é treineiro (vai prestar o vestibular só para treinar)? <span class="req">*</span></legend>
+                <mat-radio-group formControlName="is_treineiro" aria-label="Você é treineiro?">
+                  <mat-radio-button [value]="true">Sim</mat-radio-button>
+                  <mat-radio-button [value]="false">Não</mat-radio-button>
+                </mat-radio-group>
+                @if (error('is_treineiro'); as e) { <p class="field-error">{{ e }}</p> }
+              </fieldset>
+
+              @if (companions.length && !hidden('companions_names')) {
+                <fieldset class="choice">
+                  <legend>Nome dos acompanhantes <span class="muted">(opcional)</span></legend>
+                  <div class="grid" formArrayName="companions_names">
+                    @for (c of companions.controls; track $index; let i = $index) {
+                      <mat-form-field>
+                        <mat-label>Acompanhante {{ i + 1 }}</mat-label>
+                        <input matInput [formControlName]="i">
+                      </mat-form-field>
+                    }
+                  </div>
+                </fieldset>
+              }
+
+              @if (!hidden('mobility')) {
+                <fieldset class="choice">
+                  <legend>Alguém do grupo tem restrição de locomoção?</legend>
+                  <mat-radio-group formControlName="mobility_restriction" aria-label="Restrição de locomoção">
+                    <mat-radio-button [value]="true">Sim</mat-radio-button>
+                    <mat-radio-button [value]="false">Não</mat-radio-button>
+                  </mat-radio-group>
+                  @if (form.controls.mobility_restriction.value) {
+                    <mat-form-field class="full top-gap-sm">
+                      <mat-label>Conte o que precisamos saber (opcional)</mat-label>
+                      <input matInput formControlName="mobility_notes">
+                    </mat-form-field>
+                  }
+                </fieldset>
+              }
+
+              <mat-form-field class="full top-gap-sm">
+                <mat-label>Dúvidas ou interesses para o tour (opcional)</mat-label>
+                <textarea matInput formControlName="questions" rows="3" maxlength="500"></textarea>
+                <mat-hint>Ajuda o embaixador a preparar a visita.</mat-hint>
+                <mat-hint align="end">{{ form.controls.questions.value.length }}/500</mat-hint>
+                @if (error('questions'); as e) { <mat-error>{{ e }}</mat-error> }
+              </mat-form-field>
+            </section>
+
+            <section class="card">
+              <h2 class="card-title"><mat-icon>shield_person</mat-icon> Avisos e privacidade</h2>
+              @if (!hidden('whatsapp_opt_in')) {
+                <mat-checkbox formControlName="whatsapp_opt_in">Quero receber avisos da visita também por WhatsApp</mat-checkbox>
+              }
+              <mat-checkbox formControlName="privacy_accepted" [class.invalid]="error('privacy_accepted')">
+                Li e aceito o <a [href]="cfg()!.privacy_url" target="_blank" rel="noopener">aviso de privacidade</a>.
+                Os dados são usados para organizar a visita e o contato de Admissões. <span class="req">*</span>
+              </mat-checkbox>
+              @if (error('privacy_accepted'); as e) { <p class="field-error">{{ e }}</p> }
+            </section>
+
+            @if (formError(); as msg) {
+              <div class="notice error form-error" role="alert" tabindex="-1"><mat-icon>error</mat-icon>{{ msg }}</div>
+            }
+          </form>
+        }
+      </div>
+
+      <!-- Resumo: coluna lateral no computador, barra fixa no celular -->
+      <aside class="summary" aria-label="Resumo da visita">
+        <h2 class="sum-title">Sua visita</h2>
+        <p class="sum-line">
+          @if (selected(); as s) { <strong>{{ shortDate(s.date) }}, {{ hhmm(s.time) }}</strong> }
+          @else { <strong>Escolha um horário</strong> }
+          <span>{{ partyLabel() }}</span>
+        </p>
+        <dl>
+          <div><dt><mat-icon>calendar_month</mat-icon></dt>
+            <dd>{{ selected() ? dateLong(selected()!.date) : 'Escolha um dia' }}</dd></div>
+          <div><dt><mat-icon>schedule</mat-icon></dt>
+            <dd>{{ selected() ? hhmm(selected()!.time) : 'Escolha um horário' }}</dd></div>
+          <div><dt><mat-icon>group</mat-icon></dt><dd>{{ partyLabel() }}</dd></div>
+          <div class="hide-sm"><dt><mat-icon>location_on</mat-icon></dt><dd>{{ cfg()!.meeting_point }}</dd></div>
+        </dl>
+        <div class="sum-actions">
+          @if (step() === 1) {
+            <button mat-flat-button type="button" [disabled]="!selected() || submitting()" (click)="next()">
+              {{ isReschedule() ? (submitting() ? 'Reagendando…' : 'Confirmar novo horário') : 'Continuar' }}
+              <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+            </button>
+          } @else {
+            <button mat-flat-button type="submit" form="booking-form" [disabled]="submitting()">
+              {{ submitting() ? 'Enviando…' : 'Confirmar agendamento' }}
+            </button>
+            <button mat-button class="back-lg" type="button" (click)="back()"><mat-icon>arrow_back</mat-icon> Trocar horário</button>
+            <button mat-icon-button class="back-sm" type="button" aria-label="Trocar horário" (click)="back()"><mat-icon>arrow_back</mat-icon></button>
+          }
+        </div>
+      </aside>
+    </div>
+  }
+</div>

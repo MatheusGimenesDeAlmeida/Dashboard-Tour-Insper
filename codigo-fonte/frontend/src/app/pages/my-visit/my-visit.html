@@ -1,0 +1,64 @@
+<div class="wrap page">
+  <div class="narrow">
+    @if (error(); as msg) {
+      <h1>Link indisponível</h1>
+      <div class="notice error" role="alert"><mat-icon>link_off</mat-icon>{{ msg }}</div>
+      <p class="actions gap"><a mat-flat-button routerLink="/agendar">Agendar uma visita</a></p>
+    } @else if (visit(); as v) {
+      <p class="eyebrow">Minha visita</p>
+      <div class="title">
+        <h1>Olá, {{ v.first_name }}</h1>
+        <span class="pill" [class]="tone()">{{ v.status_label }}</span>
+      </div>
+
+      <app-ticket [booking]="v" [showAmbassador]="true" />
+
+      @if (active()) {
+        <h2 class="section">Gerenciar visita</h2>
+        <div class="card list">
+          @if (v.presence_confirmed) {
+            <div class="item done"><mat-icon>verified</mat-icon><span>Presença confirmada<small>O embaixador já sabe que você vem</small></span></div>
+          } @else {
+            <button class="item" type="button" [disabled]="busy()" (click)="confirmPresence()">
+              <mat-icon>check_circle</mat-icon><span>Confirmar presença<small>Ajuda o embaixador a se preparar</small></span>
+              <mat-icon class="go">chevron_right</mat-icon>
+            </button>
+          }
+          @if (v.can_reschedule) {
+            <a class="item" routerLink="/agendar" [queryParams]="{ reagendar: token() }">
+              <mat-icon>event_repeat</mat-icon>
+              <span>Reagendar<small>Mesmo protocolo · {{ v.reschedules_left }} {{ v.reschedules_left === 1 ? 'alteração disponível' : 'alterações disponíveis' }}</small></span>
+              <mat-icon class="go">chevron_right</mat-icon>
+            </a>
+          } @else {
+            <div class="item off"><mat-icon>event_repeat</mat-icon>
+              <span>Reagendar<small>{{ v.can_cancel ? 'Limite de reagendamentos atingido. Fale com Admissões.' : 'Fecha ' + v.cancel_cutoff_hours + 'h antes do tour' }}</small></span></div>
+          }
+          @if (v.can_cancel) {
+            <button class="item danger" type="button" [disabled]="busy()" (click)="cancel()">
+              <mat-icon>event_busy</mat-icon><span>Cancelar visita<small>A vaga é liberada na hora</small></span>
+              <mat-icon class="go">chevron_right</mat-icon>
+            </button>
+          }
+        </div>
+        <p class="actions gap">
+          <a mat-stroked-button [href]="v.ics_url"><mat-icon>event</mat-icon> Adicionar ao calendário</a>
+        </p>
+      }
+
+      @if (v.nps_link) {
+        <a class="card nps" [routerLink]="v.nps_link">
+          <mat-icon>star</mat-icon>
+          <span><strong>Como foi sua visita?</strong><small>Responda em menos de 1 minuto</small></span>
+          <mat-icon class="go">arrow_forward</mat-icon>
+        </a>
+      }
+
+      @if (v.status.startsWith('cancelado')) {
+        <p class="actions gap"><a mat-flat-button routerLink="/agendar">Agendar nova visita</a></p>
+      }
+    } @else {
+      <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+    }
+  </div>
+</div>

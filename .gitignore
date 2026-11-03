@@ -5,3 +5,4 @@ codigo-fonte/data/*.db-wal
 codigo-fonte/data/*.db-shm
 .env
 .DS_Store
+codigo-fonte/web/

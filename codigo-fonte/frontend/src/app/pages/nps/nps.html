@@ -1,0 +1,68 @@
+<div class="wrap page">
+  <div class="narrow">
+    @if (error(); as msg) {
+      <h1>Link indisponível</h1>
+      <div class="notice error" role="alert"><mat-icon>link_off</mat-icon>{{ msg }}</div>
+    } @else if (done()) {
+      <div class="thanks">
+        <div class="badge" aria-hidden="true"><mat-icon>favorite</mat-icon></div>
+        <h1>Obrigado!</h1>
+        <p class="lead">Sua resposta ajuda o Insper a melhorar a visita para os próximos candidatos.</p>
+        <a mat-flat-button class="btn-dark" href="https://www.insper.edu.br/">Ir para o site do Insper</a>
+      </div>
+    } @else if (info(); as i) {
+      @if (!i.open) {
+        <div class="thanks">
+          <div class="badge wait" aria-hidden="true"><mat-icon>hourglass_top</mat-icon></div>
+          <h1>Ainda não é hora</h1>
+          <p class="lead">A avaliação abre depois do tour. Até lá!</p>
+        </div>
+      } @else {
+        <p class="eyebrow">Avalie sua visita</p>
+        <h1>{{ i.first_name }}, como foi?</h1>
+        <p class="muted">Tour de {{ i.date_label }}</p>
+
+        <form class="card" (ngSubmit)="send()">
+          <fieldset>
+            <legend>De 0 a 10, quanto você recomendaria o tour no Insper a um amigo ou familiar? <span class="req">*</span></legend>
+            <div class="scores" role="radiogroup" aria-label="Nota de 0 a 10">
+              @for (n of scores; track n) {
+                <button type="button" role="radio" [attr.aria-checked]="score === n" [class]="'s ' + tone(n)" [class.on]="score === n"
+                        (click)="score = n; missingScore.set(false)">{{ n }}</button>
+              }
+            </div>
+            <div class="legend"><span>Nada provável</span><span>Muito provável</span></div>
+            @if (missingScore()) { <p class="field-error" role="alert">Escolha uma nota de 0 a 10.</p> }
+          </fieldset>
+
+          <mat-form-field>
+            <mat-label>O que mais marcou sua visita?</mat-label>
+            <textarea matInput name="highlight" rows="3" maxlength="1000" [(ngModel)]="highlight"></textarea>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>O que podemos melhorar?</mat-label>
+            <textarea matInput name="improvement" rows="3" maxlength="1000" [(ngModel)]="improvement"></textarea>
+          </mat-form-field>
+
+          @if (i.ambassador) {
+            <fieldset>
+              <legend>Como você avalia {{ i.ambassador }}, que conduziu o tour? <span class="muted">(opcional)</span></legend>
+              <div class="stars" role="radiogroup" aria-label="Avaliação do embaixador, de 1 a 5">
+                @for (n of [1, 2, 3, 4, 5]; track n) {
+                  <button type="button" role="radio" [attr.aria-checked]="rating === n" [attr.aria-label]="n + ' de 5'"
+                          [class.on]="rating !== null && n <= rating" (click)="rating = n">
+                    <mat-icon>star</mat-icon>
+                  </button>
+                }
+              </div>
+            </fieldset>
+          }
+
+          <button mat-flat-button type="submit" [disabled]="sending()">{{ sending() ? 'Enviando…' : 'Enviar avaliação' }}</button>
+        </form>
+      }
+    } @else {
+      <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+    }
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<section class="hero">
+  <div class="media" [class.fallback]="imgFailed()">
+    @if (!imgFailed()) {
+      <img [src]="heroImg" alt="" referrerpolicy="no-referrer" (error)="imgFailed.set(true)">
+    }
+  </div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow">Visite o campus</p>
+      <h1>Conheça o Insper com quem estuda aqui</h1>
+      <p class="lead">Escolha um horário com vaga, receba a confirmação na hora e conheça o campus com um aluno embaixador.</p>
+      <div class="actions">
+        <a mat-flat-button routerLink="/agendar">
+          Agendar minha visita <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </a>
+        @if (cfg()?.virtual_tour_url; as url) {
+          <a mat-stroked-button class="ghost" [href]="url" target="_blank" rel="noopener">
+            <mat-icon>360</mat-icon> Tour virtual
+          </a>
+        }
+      </div>
+      <ul class="facts">
+        <li><mat-icon>schedule</mat-icon> Cerca de 1 hora</li>
+        <li><mat-icon>group</mat-icon> Até {{ cfg()?.group_capacity ?? 10 }} pessoas por agendamento</li>
+        <li><mat-icon>payments</mat-icon> Gratuito</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block">
+  <p class="eyebrow">Como funciona</p>
+  <h2>Quatro passos, sem complicação</h2>
+  <ol class="steps">
+    @for (s of steps; track s.title; let i = $index) {
+      <li class="card step">
+        <span class="num">{{ i + 1 }}</span>
+        <mat-icon>{{ s.icon }}</mat-icon>
+        <h3>{{ s.title }}</h3>
+        <p class="muted">{{ s.text }}</p>
+      </li>
+    }
+  </ol>
+</section>
+
+@if (cfg(); as c) {
+  <section class="wrap block">
+    <div class="practical card">
+      <div>
+        <p class="eyebrow">No dia da visita</p>
+        <h2>O que saber antes de ir</h2>
+      </div>
+      <dl>
+        <div><dt><mat-icon>location_on</mat-icon> Ponto de encontro</dt><dd>{{ c.meeting_point }}</dd></div>
+        <div><dt><mat-icon>badge</mat-icon> O que levar</dt><dd>{{ c.what_to_bring }}</dd></div>
+        <div><dt><mat-icon>event_repeat</mat-icon> Imprevistos</dt><dd>Reagende ou cancele pelo link do e-mail de confirmação.</dd></div>
+      </dl>
+    </div>
+  </section>
+}
+
+<section class="wrap block">
+  <p class="eyebrow">Protótipo</p>
+  <h2>Acessos da plataforma</h2>
+  <p class="muted">Cada perfil tem a sua área. Use o acesso rápido de demonstração na tela de login.</p>
+  <div class="profiles">
+    @for (p of profiles; track p.title) {
+      @if (p.spa) {
+        <a class="card profile" [routerLink]="p.href">
+          <mat-icon>{{ p.icon }}</mat-icon>
+          <div><h3>{{ p.title }}</h3><p class="muted">{{ p.text }}</p></div>
+          <mat-icon class="go">arrow_forward</mat-icon>
+        </a>
+      } @else {
+        <a class="card profile" [href]="p.href">
+          <mat-icon>{{ p.icon }}</mat-icon>
+          <div><h3>{{ p.title }}</h3><p class="muted">{{ p.text }}</p></div>
+          <mat-icon class="go">arrow_forward</mat-icon>
+        </a>
+      }
+    }
+  </div>
+</section>

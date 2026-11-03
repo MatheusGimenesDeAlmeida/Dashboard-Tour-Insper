@@ -7,12 +7,15 @@ services:
     runtime: python
     plan: free
     rootDir: codigo-fonte
-    buildCommand: python --version
+    # Compila as telas em Angular (frontend/) para web/, que o servidor Python entrega
+    buildCommand: cd frontend && npm ci && npm run build
     startCommand: python run.py --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/public/config
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.7
+      - key: NODE_VERSION
+        value: 22.15.0
       # "dev" mantém o acesso rápido de demonstração, a caixa de entrada simulada e a simulação de tempo
       # (o login por link mágico exige SMTP real). Use "prod" quando houver SMTP configurado.
       - key: APP_ENV

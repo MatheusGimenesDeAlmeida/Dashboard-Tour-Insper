@@ -1020,6 +1020,13 @@ PAGES = [
     (re.compile(r"^/simulador/?$"), "simulador-tour-insper.html", None),
 ]
 
+# Telas já migradas para o Angular (pasta frontend/, compilada em web/browser/ com `npm run build`).
+# Enquanto web/ não existir, valem as páginas antigas de PAGES. Ao migrar outra tela, inclua a rota aqui.
+WEB_DIR = os.path.join(core.BASE_DIR, "web", "browser")
+SPA_PAGES = [re.compile(p) for p in (
+    r"^/$", r"^/agendar/?$", r"^/minha-visita/[\w\-\.]+/?$", r"^/nps/(grupo/)?[\w\-\.]+/?$",
+)]
+
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "InsperTour/1.0"
@@ -1055,15 +1062,28 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(body)
 
-    def _static(self, rel):
-        path = os.path.normpath(os.path.join(STATIC_DIR, rel))
-        if not path.startswith(STATIC_DIR) or not os.path.isfile(path):
+    def _static(self, rel, base=STATIC_DIR, cache="no-cache"):
+        path = os.path.normpath(os.path.join(base, rel))
+        if not path.startswith(base) or not os.path.isfile(path):
             return Response(404, "Não encontrado".encode(), "text/plain; charset=utf-8")
         ctype = mimetypes.guess_type(path)[0] or "application/octet-stream"
         if ctype.startswith("text/") or ctype in ("application/javascript",):
             ctype += "; charset=utf-8"
         with open(path, "rb") as f:
-            return Response(200, f.read(), ctype, {"Cache-Control": "no-cache"})
+            return Response(200, f.read(), ctype, {"Cache-Control": cache})
+
+    def _web(self, path):
+        """Páginas e arquivos do Angular; None quando o caminho não é dele."""
+        if not os.path.isdir(WEB_DIR):
+            return None
+        if any(rx.match(path) for rx in SPA_PAGES):
+            return self._static("index.html", WEB_DIR)
+        rel = path.lstrip("/")
+        if rel and os.path.isfile(os.path.join(WEB_DIR, rel)):
+            # .js e .css do build têm hash no nome, então podem ficar em cache por muito tempo
+            hashed = rel.endswith((".js", ".css"))
+            return self._static(rel, WEB_DIR, "public, max-age=31536000, immutable" if hashed else "no-cache")
+        return None
 
     def _handle(self, method):
         conn = core.connect()
@@ -1073,6 +1093,9 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/static/"):
                 return self._send(self._static(path[len("/static/"):]))
             if method == "GET":
+                web = self._web(path)
+                if web:
+                    return self._send(web)
                 for rx, page, role in PAGES:
                     if rx.match(path):
                         if role:
