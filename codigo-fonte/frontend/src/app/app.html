@@ -1,29 +1,33 @@
-<a class="skip" href="#conteudo">Pular para o conteúdo</a>
-
-<header class="topbar">
-  <div class="wrap inner">
-    <a class="brand" routerLink="/" aria-label="Insper · Tours no campus, página inicial">
-      <span class="logo">Insper<span class="dot">.</span></span>
-      <span class="area">Tours no campus</span>
-    </a>
-    <nav aria-label="Principal">
-      <a class="nav-link" href="/embaixador">Sou embaixador</a>
-      <a class="nav-link" href="/admin">Admissões</a>
-      <a class="nav-cta" routerLink="/agendar">Agendar visita</a>
-    </nav>
-  </div>
-</header>
-
-<main id="conteudo">
+@if (isAdmin()) {
   <router-outlet />
-</main>
+} @else {
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
 
-<footer class="foot">
-  <div class="wrap inner">
-    <div>
-      <span class="logo">Insper<span class="dot">.</span></span>
-      <p>Rua Quatá, 300 · Vila Olímpia · São Paulo</p>
+  <header class="topbar">
+    <div class="wrap inner">
+      <a class="brand" routerLink="/" aria-label="Insper · Tours no campus, página inicial">
+        <span class="logo">Insper<span class="dot">.</span></span>
+        <span class="area">Tours no campus</span>
+      </a>
+      <nav aria-label="Principal">
+        <a class="nav-link" href="/embaixador">Sou embaixador</a>
+        <a class="nav-link" href="/admin">Admissões</a>
+        <a class="nav-cta" routerLink="/agendar">Agendar visita</a>
+      </nav>
     </div>
-    <p class="proto">Protótipo v1 · Projeto de Melhoria de Processos · dados fictícios</p>
-  </div>
-</footer>
+  </header>
+
+  <main id="conteudo">
+    <router-outlet />
+  </main>
+
+  <footer class="foot">
+    <div class="wrap inner">
+      <div>
+        <span class="logo">Insper<span class="dot">.</span></span>
+        <p>Rua Quatá, 300 · Vila Olímpia · São Paulo</p>
+      </div>
+      <p class="proto">Protótipo v1 · Projeto de Melhoria de Processos · dados fictícios</p>
+    </div>
+  </footer>
+}

@@ -1,0 +1,52 @@
+<header class="bar">
+  @if (isMobile()) {
+    <button mat-icon-button class="menu-btn" aria-label="Abrir menu" (click)="menuOpen.set(!menuOpen())"><mat-icon>menu</mat-icon></button>
+  }
+  <a class="brand" routerLink="/admin">
+    <span class="logo">Insper<span class="dot">.</span></span>
+    <span class="area">Admissões</span>
+  </a>
+  <div class="right">
+    <a class="link" href="/caixa-de-entrada" target="_blank" rel="noopener" matTooltip="E-mails e WhatsApps simulados">
+      <mat-icon>inbox</mat-icon><span class="hide-sm">Caixa de entrada</span>
+    </a>
+    @if (state.me(); as me) {
+      <span class="who hide-sm"><span class="avatar" aria-hidden="true">{{ me.name[0] }}</span>{{ me.name }}</span>
+    }
+    <button mat-stroked-button class="out" (click)="logout()">Sair</button>
+  </div>
+</header>
+
+<mat-sidenav-container class="container">
+  <mat-sidenav [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile() || menuOpen()" (closedStart)="menuOpen.set(false)" class="nav">
+    <nav aria-label="Seções do painel">
+      @for (item of main; track item.path) {
+        <a class="item" [routerLink]="item.path" routerLinkActive="on" ariaCurrentWhenActive="page">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+          @if (item.badge && state.openExceptions()) {
+            <span class="count" [attr.aria-label]="state.openExceptions() + ' abertas'">{{ state.openExceptions() }}</span>
+          }
+        </a>
+      }
+      <hr>
+      @for (item of secondary; track item.path) {
+        <a class="item" [routerLink]="item.path" routerLinkActive="on" ariaCurrentWhenActive="page">
+          <mat-icon>{{ item.icon }}</mat-icon><span>{{ item.label }}</span>
+        </a>
+      }
+      <hr>
+      <a class="item muted-item" href="/"><mat-icon>public</mat-icon><span>Ver site público</span></a>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    @if (error(); as msg) {
+      <div class="notice error" role="alert"><mat-icon>error</mat-icon>{{ msg }}</div>
+    } @else if (!state.ready()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+    } @else {
+      <router-outlet />
+    }
+  </mat-sidenav-content>
+</mat-sidenav-container>

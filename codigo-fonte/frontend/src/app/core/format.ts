@@ -22,6 +22,31 @@ export function shortDate(dateStr: string): string {
   return `${wd[0].toUpperCase()}${wd.slice(1)}, ${dm}`;
 }
 
+/** ISO → "03/11/2026 14:05" */
+export function dateTime(iso: string | null | undefined): string {
+  return iso ? dtf({ day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '—';
+}
+
+/** ISO ou AAAA-MM-DD → "03/11/2026" */
+export function dateShort(iso: string): string {
+  return dtf({ day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso.length === 10 ? iso + 'T12:00:00-03:00' : iso));
+}
+
+/** "2026-11-04" → "4 nov" */
+export function dayMonth(dateStr: string): string {
+  return dtf({ day: 'numeric', month: 'short' }).format(new Date(dateStr + 'T12:00:00-03:00')).replace('.', '').replace(' de ', ' ');
+}
+
+/** "2026-11-04" → "qua" */
+export function weekdayShort(dateStr: string): string {
+  return dtf({ weekday: 'short' }).format(new Date(dateStr + 'T12:00:00-03:00')).replace('.', '');
+}
+
+/** Número em pt-BR; "—" quando não há valor */
+export function num(v: number | null | undefined, digits = 1): string {
+  return v === null || v === undefined ? '—' : Number(v).toLocaleString('pt-BR', { maximumFractionDigits: digits });
+}
+
 /** Data AAAA-MM-DD + n dias */
 export function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + 'T12:00:00Z');

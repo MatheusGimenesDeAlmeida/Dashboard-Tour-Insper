@@ -1,0 +1,107 @@
+<header class="adm-head">
+  <div><p class="eyebrow">Operação</p><h1>Configurações</h1></div>
+</header>
+
+@if (cfg(); as c) {
+  <div class="grid">
+    <section class="card">
+      <h2 class="sec">Grade de horários</h2>
+      <p class="label">Dias com tour</p>
+      <mat-chip-listbox multiple aria-label="Dias com tour">
+        @for (w of weekdays; track w; let i = $index) {
+          <mat-chip-option [selected]="hasDay(i)" (selectionChange)="toggleDay(i)">{{ w }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+      <mat-form-field class="top">
+        <mat-label>Horários de início</mat-label>
+        <input matInput [(ngModel)]="times" name="times">
+        <mat-hint>HH:MM separados por vírgula. Ex.: 10:00, 14:00</mat-hint>
+      </mat-form-field>
+      <mat-form-field><mat-label>Duração do tour (min)</mat-label><input matInput type="number" min="0" [(ngModel)]="c.duration_min" name="duration_min"></mat-form-field>
+      <mat-form-field><mat-label>Pessoas por embaixador (grupo)</mat-label><input matInput type="number" min="1" [(ngModel)]="c.group_capacity" name="group_capacity"></mat-form-field>
+      <mat-checkbox [(ngModel)]="c.reserve_required" name="reserve_required">Exigir embaixador reserva disponível para abrir grupo novo</mat-checkbox>
+    </section>
+
+    <section class="card">
+      <h2 class="sec">Prazos</h2>
+      <mat-form-field><mat-label>Antecedência mínima para agendar (h)</mat-label><input matInput type="number" min="0" [(ngModel)]="c.min_lead_hours" name="min_lead_hours"></mat-form-field>
+      <mat-form-field><mat-label>Agenda aberta para os próximos (dias)</mat-label><input matInput type="number" min="1" [(ngModel)]="c.max_days_ahead" name="max_days_ahead"></mat-form-field>
+      <mat-form-field><mat-label>Horário do lembrete D-1</mat-label><input matInput type="time" [(ngModel)]="c.reminder_time" name="reminder_time"></mat-form-field>
+      <mat-form-field><mat-label>Cancelar/reagendar pelo link até (h antes)</mat-label><input matInput type="number" min="0" [(ngModel)]="c.cancel_cutoff_hours" name="cancel_cutoff_hours"></mat-form-field>
+      <mat-form-field><mat-label>Máximo de reagendamentos pelo link</mat-label><input matInput type="number" min="0" [(ngModel)]="c.max_reschedules" name="max_reschedules"></mat-form-field>
+      <mat-form-field><mat-label>Prazo do embaixador para responder (h)</mat-label><input matInput type="number" min="1" [(ngModel)]="c.invite_timeout_hours" name="invite_timeout_hours"></mat-form-field>
+      <mat-form-field><mat-label>Abrir exceção se ninguém aceitar até (h antes)</mat-label><input matInput type="number" min="0" [(ngModel)]="c.exception_cutoff_hours" name="exception_cutoff_hours"></mat-form-field>
+    </section>
+
+    <section class="card">
+      <h2 class="sec">Visita e formulário</h2>
+      <mat-form-field><mat-label>Ponto de encontro</mat-label><input matInput [(ngModel)]="c.meeting_point" name="meeting_point"></mat-form-field>
+      <mat-form-field><mat-label>O que levar</mat-label><input matInput [(ngModel)]="c.what_to_bring" name="what_to_bring"></mat-form-field>
+      <mat-form-field><mat-label>Link do aviso de privacidade</mat-label><input matInput type="url" [(ngModel)]="c.privacy_url" name="privacy_url"></mat-form-field>
+      <mat-form-field><mat-label>Link do tour virtual</mat-label><input matInput type="url" [(ngModel)]="c.virtual_tour_url" name="virtual_tour_url"></mat-form-field>
+      <mat-form-field><mat-label>Idiomas oferecidos</mat-label><input matInput [(ngModel)]="langs" name="langs"><mat-hint>Separados por vírgula</mat-hint></mat-form-field>
+      <p class="label">Ocultar campos opcionais do formulário</p>
+      @for (h of hideable; track h[0]) {
+        <mat-checkbox [checked]="isHidden(h[0])" (change)="toggleHidden(h[0], $event.checked)">{{ h[1] }}</mat-checkbox>
+      }
+    </section>
+
+    <section class="card">
+      <h2 class="sec">Alocação, indicadores e dados</h2>
+      <mat-checkbox [(ngModel)]="c.match_course" name="match_course">Priorizar embaixador do mesmo curso do grupo</mat-checkbox>
+      <mat-form-field class="top"><mat-label>Ignorar cancelamentos antecipados (h)</mat-label>
+        <input matInput type="number" min="0" [(ngModel)]="c.metric_cancel_exclusion_hours" name="metric_cancel_exclusion_hours">
+        <mat-hint>No indicador ajustado, cancelamentos feitos com essa antecedência não contam.</mat-hint></mat-form-field>
+      <mat-form-field><mat-label>Anonimizar dados pessoais após (meses)</mat-label><input matInput type="number" min="1" [(ngModel)]="c.retention_months" name="retention_months"></mat-form-field>
+      <mat-form-field><mat-label>E-mail de Admissões (alertas)</mat-label><input matInput type="email" [(ngModel)]="c.admissions_email" name="admissions_email"></mat-form-field>
+    </section>
+  </div>
+
+  <div class="save-bar">
+    <button mat-flat-button [disabled]="saving()" (click)="save()"><mat-icon>save</mat-icon> {{ saving() ? 'Salvando…' : 'Salvar configurações' }}</button>
+  </div>
+
+  @if (data(); as r) {
+    <div class="grid">
+      <section class="card">
+        <h2 class="sec">Bloqueios e feriados</h2>
+        <ul class="list">
+          @for (b of r.blackouts; track b.id) {
+            <li><span>{{ dateShort(b.date) }} · {{ b.start_time ? hhmm(b.start_time) : 'dia todo' }}{{ b.reason ? ' · ' + b.reason : '' }}</span>
+              <button mat-icon-button (click)="removeBlackout(b.id)" aria-label="Remover bloqueio"><mat-icon>delete</mat-icon></button></li>
+          } @empty { <li class="muted">Nenhum bloqueio.</li> }
+        </ul>
+        <div class="inline">
+          <mat-form-field><mat-label>Data</mat-label><input matInput type="date" [(ngModel)]="bl.date" name="bl_date"></mat-form-field>
+          <mat-form-field>
+            <mat-label>Horário</mat-label>
+            <mat-select [(ngModel)]="bl.start_time" name="bl_time">
+              <mat-option value="">Dia todo</mat-option>
+              @for (t of c.start_times; track t) { <mat-option [value]="t">{{ hhmm(t) }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="inline">
+          <mat-form-field><mat-label>Motivo</mat-label><input matInput [(ngModel)]="bl.reason" name="bl_reason" placeholder="Feriado, vestibular, evento…"></mat-form-field>
+          <button mat-stroked-button [disabled]="!bl.date" (click)="addBlackout()">Bloquear</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="sec">Cursos de interesse</h2>
+        <ul class="list">
+          @for (co of r.courses; track co.id) {
+            <li><span>{{ co.name }} @if (!co.active) { <span class="pill">oculto</span> }</span>
+              <button mat-button (click)="toggleCourse(co.id, !!co.active)">{{ co.active ? 'Ocultar' : 'Mostrar' }}</button></li>
+          }
+        </ul>
+        <div class="inline">
+          <mat-form-field><mat-label>Novo curso</mat-label><input matInput [(ngModel)]="newCourse" name="new_course"></mat-form-field>
+          <button mat-stroked-button [disabled]="!newCourse.trim()" (click)="addCourse()">Adicionar</button>
+        </div>
+      </section>
+    </div>
+  }
+} @else {
+  <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+}

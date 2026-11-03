@@ -16,7 +16,7 @@ export class ApiError extends Error {
 export class Api {
   private http = inject(HttpClient);
 
-  private async call<T>(method: string, url: string, body?: unknown): Promise<T> {
+  async request<T>(method: string, url: string, body?: unknown): Promise<T> {
     try {
       return await firstValueFrom(this.http.request<T>(method, url, { body, withCredentials: true }));
     } catch (e) {
@@ -29,44 +29,44 @@ export class Api {
   }
 
   config() {
-    return this.call<PublicConfig>('GET', '/api/public/config');
+    return this.request<PublicConfig>('GET', '/api/public/config');
   }
 
   slots(from: string, to: string, party: number, rescheduleToken?: string | null) {
     const q = new URLSearchParams({ from, to, party: String(party) });
     if (rescheduleToken) q.set('token', rescheduleToken);
-    return this.call<{ party: number; slots: Slot[] }>('GET', `/api/public/slots?${q}`);
+    return this.request<{ party: number; slots: Slot[] }>('GET', `/api/public/slots?${q}`);
   }
 
   createBooking(body: BookingRequest) {
-    return this.call<BookingView>('POST', '/api/public/bookings', body);
+    return this.request<BookingView>('POST', '/api/public/bookings', body);
   }
 
   booking(token: string) {
-    return this.call<BookingView>('GET', `/api/public/bookings/${token}`);
+    return this.request<BookingView>('GET', `/api/public/bookings/${token}`);
   }
 
   reschedule(token: string, slotStart: string) {
-    return this.call<BookingView>('POST', `/api/public/bookings/${token}/reschedule`, { slot_start: slotStart });
+    return this.request<BookingView>('POST', `/api/public/bookings/${token}/reschedule`, { slot_start: slotStart });
   }
 
   cancel(token: string, reason: string) {
-    return this.call<BookingView>('POST', `/api/public/bookings/${token}/cancel`, { reason });
+    return this.request<BookingView>('POST', `/api/public/bookings/${token}/cancel`, { reason });
   }
 
   confirmAttendance(token: string) {
-    return this.call<BookingView>('POST', `/api/public/bookings/${token}/confirm-attendance`, {});
+    return this.request<BookingView>('POST', `/api/public/bookings/${token}/confirm-attendance`, {});
   }
 
   nps(token: string) {
-    return this.call<NpsInfo>('GET', `/api/public/nps/${token}`);
+    return this.request<NpsInfo>('GET', `/api/public/nps/${token}`);
   }
 
   submitNps(token: string, body: { score: number; highlight: string; improvement: string; ambassador_rating: number | null }) {
-    return this.call<{ ok: boolean }>('POST', `/api/public/nps/${token}`, body);
+    return this.request<{ ok: boolean }>('POST', `/api/public/nps/${token}`, body);
   }
 
   npsGroup(token: string) {
-    return this.call<NpsGroup>('GET', `/api/public/nps-group/${token}`);
+    return this.request<NpsGroup>('GET', `/api/public/nps-group/${token}`);
   }
 }

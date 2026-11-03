@@ -1,0 +1,31 @@
+h2[mat-dialog-title] { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.chips { display: inline-flex; gap: 6px; }
+.mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-weight: 600; letter-spacing: .02em; }
+h3 { font-family: var(--sans); font-size: 15px; font-weight: 600; margin: 24px 0 10px; color: var(--ink); }
+.full { width: 100%; }
+.muted { color: var(--muted); }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+.kv { margin: 0; display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; font-size: 14px; color: var(--ink);
+  dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; } }
+
+.facts { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-bottom: 14px; color: var(--ink);
+  span { display: inline-flex; align-items: center; gap: 6px; } mat-icon { color: var(--muted); font-size: 20px; width: 20px; height: 20px; } }
+
+.timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); font-size: 14px; color: var(--ink);
+  li { position: relative; padding: 4px 0 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  li::before { content: ''; position: absolute; left: -20px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--card); border: 2px solid var(--muted); }
+  li.manual::before { border-color: #c98500; background: var(--yellow-soft); }
+  time { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 128px; } }
+
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--ink);
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .nowrap { white-space: nowrap; }
+  tr.click { cursor: pointer; &:hover td { background: var(--mat-sys-surface-container-low); } } }
+
+.actions-bar { justify-content: space-between !important; flex-wrap: wrap; gap: 8px; padding: 12px 24px 20px !important;
+  .group { display: flex; flex-wrap: wrap; gap: 8px; } }
+.danger-text { --mat-button-text-label-text-color: var(--err); }

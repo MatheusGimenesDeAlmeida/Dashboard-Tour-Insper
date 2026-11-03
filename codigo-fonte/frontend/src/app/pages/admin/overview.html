@@ -1,0 +1,202 @@
+<header class="adm-head">
+  <div>
+    <p class="eyebrow">{{ todayLabel() }}</p>
+    <h1>Visão geral</h1>
+  </div>
+  <div class="tools">
+    <mat-button-toggle-group [value]="preset()" (change)="setPreset($event.value)" aria-label="Período dos indicadores" hideSingleSelectionIndicator>
+      @for (p of presets; track p.key) { <mat-button-toggle [value]="p.key">{{ p.label }}</mat-button-toggle> }
+    </mat-button-toggle-group>
+    <a mat-icon-button [href]="csvUrl()" matTooltip="Exportar indicadores (CSV)" aria-label="Exportar indicadores em CSV"><mat-icon>download</mat-icon></a>
+  </div>
+</header>
+@if (loading()) { <mat-progress-bar mode="indeterminate" class="bar" aria-label="Carregando" /> }
+
+@if (error(); as msg) {
+  <div class="notice error" role="alert"><mat-icon>error</mat-icon>{{ msg }}</div>
+} @else if (d(); as d) {
+  <!-- O que precisa de ação + hoje -->
+  <div class="row two">
+    <section class="card">
+      <h2 class="sec">Precisa de você @if (pendingTotal()) { <span class="badge">{{ pendingTotal() }}</span> }</h2>
+      @for (i of pending(); track i.title) {
+        <button class="todo" type="button" (click)="i.go()">
+          <span class="ic" [class]="'ic ' + i.tone"><mat-icon>{{ i.icon }}</mat-icon></span>
+          <span class="tx"><strong>{{ i.title }}</strong><small>{{ i.sub }}</small></span>
+          <span class="n">{{ i.n }}</span>
+          <mat-icon class="chev">chevron_right</mat-icon>
+        </button>
+      } @empty {
+        <div class="todo done">
+          <span class="ic green"><mat-icon>check</mat-icon></span>
+          <span class="tx"><strong>Tudo em dia</strong><small>A plataforma está confirmando, lembrando e escalando sozinha.</small></span>
+        </div>
+      }
+    </section>
+    <section class="card today">
+      <h2 class="sec">Hoje</h2>
+      <div class="nums">
+        <div><span class="big">{{ d.today.length }}</span><span class="lbl">{{ d.today.length === 1 ? 'tour' : 'tours' }}</span></div>
+        <div><span class="big">{{ peopleToday() }}</span><span class="lbl">pessoas</span></div>
+      </div>
+      @for (g of d.today; track $index) {
+        <div class="tl" [class.exc]="g.in_exception">
+          <b>{{ g.time_label }}</b>
+          <span>{{ g.handled_by_admissions ? 'Admissões' : (g.ambassador || 'Sem embaixador') }}</span>
+          <small>{{ g.people }}/{{ g.capacity }}</small>
+        </div>
+      } @empty {
+        <p class="muted">Nenhum tour agendado para hoje.</p>
+      }
+    </section>
+  </div>
+
+  <!-- Indicadores do projeto -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Indicadores</h2><span class="muted">Anel: caminho até a meta do projeto</span></div>
+    <div class="kpis">
+      @for (k of kpis(); track k.label) {
+        <article class="card kpi" [class]="'card kpi s-' + k.status">
+          <div class="k-head">
+            <span class="k-label"><mat-icon>{{ k.icon }}</mat-icon>{{ k.label }}</span>
+          </div>
+          <div class="k-body">
+            <div><span class="k-val">{{ k.value }}</span><span class="k-unit">{{ k.unit }}</span></div>
+            <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="32" r="26" class="track" />
+              <circle cx="32" cy="32" r="26" class="prog" [attr.stroke-dasharray]="dash(k.progress)" transform="rotate(-90 32 32)" />
+            </svg>
+          </div>
+          <div class="k-foot">
+            <span class="k-status"><mat-icon>{{ statusIcon(k.status) }}</mat-icon>{{ statusText(k.status) }}</span>
+            <span>{{ k.foot }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- Jornada -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Jornada do período</h2><span class="muted">{{ periodLabel() }}</span></div>
+    <div class="card journey">
+      @for (s of journey(); track s.key; let last = $last) {
+        <div class="step">
+          <div class="s-top">
+            <span class="s-ic"><mat-icon>{{ s.icon }}</mat-icon></span>
+            @if (!last) {
+              <span class="s-line">@if (s.conv !== null) { <span class="s-conv" matTooltip="Passaram para a etapa seguinte">{{ s.conv }}%</span> }</span>
+            }
+          </div>
+          <div class="s-label">{{ s.label }}</div>
+          <div class="s-count">{{ s.count }}</div>
+          <div class="s-bar"><span [style.width.%]="s.pct"></span></div>
+          @if (s.msg; as m) {
+            <div class="s-msg"><mat-icon>mail</mat-icon>{{ m.email }}@if (m.whatsapp) { <span class="sep">·</span><mat-icon>chat</mat-icon>{{ m.whatsapp }} }</div>
+          }
+          <div class="s-note">{{ s.note }}</div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Semana + mensagens -->
+  <div class="row two block">
+    <section class="card">
+      <div class="sec-head"><h2 class="sec">Por semana</h2>
+        <div class="legend">
+          <span><i [style.background]="series[0]"></i>Agendados</span>
+          <span><i [style.background]="series[1]"></i>Realizados</span>
+        </div>
+      </div>
+      @if (weekly().items.length) {
+        <div class="wchart" role="img" aria-label="Agendados e realizados por semana">
+          <div class="y"><span>{{ weekly().max }}</span><span>{{ weekly().half }}</span><span>0</span></div>
+          <div class="plot">
+            <div class="grid"><i></i><i></i><i></i></div>
+            @for (w of weekly().items; track w.week_start) {
+              <div class="col" tabindex="0" [matTooltip]="'Semana de ' + w.label + ': ' + w.bookings + ' agendados, ' + w.realized + ' realizados'">
+                <div class="bars">
+                  <span [style.height.%]="w.hb" [style.background]="series[0]"></span>
+                  <span [style.height.%]="w.hr" [style.background]="series[1]"></span>
+                </div>
+                <span class="x">{{ w.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <details class="table-view"><summary>Ver como tabela</summary>
+          <table class="tbl"><thead><tr><th>Semana</th><th class="num">Agendados</th><th class="num">Realizados</th></tr></thead>
+            <tbody>@for (w of weekly().items; track w.week_start) { <tr><td>{{ w.label }}</td><td class="num">{{ w.bookings }}</td><td class="num">{{ w.realized }}</td></tr> }</tbody>
+          </table>
+        </details>
+      } @else { <p class="muted">Sem dados no período.</p> }
+      <div class="mini">
+        <span><b>{{ d.totals.no_show }}</b> não vieram</span>
+        <span><b>{{ d.totals.cancelled_candidate + d.totals.cancelled_admissions }}</b> cancelados</span>
+        <span><b>{{ d.totals.presence_pending }}</b> sem registro de presença</span>
+      </div>
+    </section>
+
+    @if (messages(); as m) {
+      <section class="card">
+        <h2 class="sec">Mensagens enviadas</h2>
+        <div class="m-total"><span class="big">{{ m.total }}</span><span class="lbl">{{ m.total === 1 ? 'mensagem no período' : 'mensagens no período' }}</span></div>
+        <div class="chips">
+          <span class="pill"><mat-icon>mail</mat-icon>{{ m.email }} e-mails</span>
+          <span class="pill"><mat-icon>chat</mat-icon>{{ m.whatsapp }} WhatsApp</span>
+          <span class="pill" [class.warn]="m.failed" [class.ok]="!m.failed"><mat-icon>{{ m.failed ? 'error' : 'check' }}</mat-icon>{{ m.failed ? m.failed + ' com falha' : 'nenhuma falha' }}</span>
+        </div>
+        <h3 class="sub">Para quem</h3>
+        <div class="stack" role="img" [attr.aria-label]="'Mensagens por público'">
+          @for (a of m.audience; track a.name) {
+            <span [style.width.%]="a.pct" [style.background]="a.color" [matTooltip]="a.name + ': ' + a.count"></span>
+          }
+        </div>
+        <div class="legend">
+          @for (a of m.audience; track a.name) { <span><i [style.background]="a.color"></i>{{ a.name }} <b>{{ a.count }}</b></span> }
+        </div>
+        <h3 class="sub">Mais enviadas</h3>
+        @for (t of m.top; track t.code) {
+          <div class="hbar" [matTooltip]="t.code + ' · ' + t.count + ' envios'">
+            <span class="name">{{ t.name }}</span>
+            <span class="track"><span [style.width.%]="t.pct"></span></span>
+            <span class="n">{{ t.count }}</span>
+          </div>
+        } @empty { <p class="muted">Nenhuma mensagem no período.</p> }
+      </section>
+    }
+  </div>
+
+  <!-- Demanda -->
+  <div class="row two block">
+    <section class="card">
+      <h2 class="sec">Ocupação por dia e horário</h2>
+      <div class="heat-wrap">
+        <table class="heat">
+          <thead><tr><th></th>@for (w of heat().wds; track w) { <th>{{ w }}</th> }</tr></thead>
+          <tbody>
+            @for (r of heat().rows; track r.time) {
+              <tr><th>{{ r.time }}</th>
+                @for (c of r.cells; track $index) {
+                  <td [style.background]="'color-mix(in srgb, #2a78d6 ' + c.share + '%, #f1f4f8)'" [class.dark]="c.dark" [matTooltip]="c.tip">{{ c.label }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Mais escuro = horário mais cheio. Passe o mouse para ver lugares ocupados.</p>
+    </section>
+    <section class="card">
+      <h2 class="sec">Interesse por curso</h2>
+      @for (c of courses(); track c.course) {
+        <div class="hbar" [matTooltip]="c.treineiros + ' treineiro(s)'">
+          <span class="name">{{ c.course }}</span>
+          <span class="track"><span [style.width.%]="c.pct"></span></span>
+          <span class="n">{{ c.total }}</span>
+        </div>
+      } @empty { <p class="muted">Sem agendamentos no período.</p> }
+    </section>
+  </div>
+}

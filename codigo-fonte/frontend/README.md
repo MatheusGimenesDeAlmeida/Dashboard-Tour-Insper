@@ -11,8 +11,12 @@ Python (`../app/server.py`), sem mudar nenhuma regra de negócio.
 | `/agendar` (e `/agendar?reagendar=<token>`) | `src/app/pages/booking/` |
 | `/minha-visita/<token>` | `src/app/pages/my-visit/` |
 | `/nps/<token>` e `/nps/grupo/<token>` | `src/app/pages/nps/` |
+| `/admin/...` (painel de Admissões, só com login de Admissões) | `src/app/pages/admin/` |
 
-Login, portal do embaixador, painel de Admissões, caixa de entrada e embed continuam nas páginas antigas
+No painel, cada seção do menu é um arquivo em `pages/admin/` (`overview`, `agenda`, `bookings`, `exceptions`,
+`ambassadors`, `settings`, `templates`, `health`), e os diálogos ficam em `dialogs.ts`.
+
+Login, portal do embaixador, caixa de entrada e embed continuam nas páginas antigas
 (`../static/`) até serem migrados. Ao migrar uma tela, inclua a rota em `src/app/app.routes.ts` **e** em
 `SPA_PAGES` no `app/server.py`.
 

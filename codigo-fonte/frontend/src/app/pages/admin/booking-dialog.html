@@ -1,0 +1,94 @@
+@if (error(); as msg) {
+  <mat-dialog-content><div class="notice error" role="alert">{{ msg }}</div></mat-dialog-content>
+} @else if (b(); as b) {
+  <h2 mat-dialog-title>
+    <span class="mono">{{ b.protocol }}</span>
+    <span class="chips"><app-status [status]="b.status" />@if (b.group.in_exception && b.status !== 'excecao') { <app-status status="excecao" /> }</span>
+  </h2>
+  <mat-dialog-content>
+    <div class="cols">
+      <dl class="kv">
+        <dt>Visita</dt><dd>{{ b.date_label }}, às {{ b.time_label }}</dd>
+        <dt>Nome</dt><dd>{{ b.full_name }}</dd>
+        <dt>CPF</dt><dd>{{ b.cpf || '—' }}</dd>
+        <dt>E-mail</dt><dd>{{ b.email }}</dd>
+        <dt>Celular</dt><dd>{{ maskPhone(b.phone || '') || '—' }}</dd>
+        <dt>Curso</dt><dd>{{ b.course_interest }} · {{ b.is_treineiro ? 'treineiro' : 'vestibulando' }}</dd>
+        <dt>Pessoas</dt><dd>{{ b.party_size }}{{ b.companions_names.length ? ' — ' + b.companions_names.join(', ') : '' }}</dd>
+      </dl>
+      <dl class="kv">
+        <dt>Embaixador</dt><dd>{{ b.handled_by_admissions ? 'Admissões' : (b.ambassador_name || '—') }}</dd>
+        <dt>Idioma</dt><dd>{{ b.language }}</dd>
+        <dt>Locomoção</dt><dd>{{ b.mobility_restriction ? 'Sim' + (b.mobility_notes ? ' — ' + b.mobility_notes : '') : 'Não' }}</dd>
+        <dt>Dúvidas</dt><dd>{{ b.questions || '—' }}</dd>
+        <dt>Reagendamentos</dt><dd>{{ b.reschedule_count }}</dd>
+        <dt>WhatsApp</dt><dd>{{ b.whatsapp_opt_in ? 'aceitou' : 'não' }}</dd>
+        <dt>CRM</dt><dd>{{ b.crm_id || 'pendente' }}</dd>
+        @if (b.nps; as n) { <dt>NPS</dt><dd>{{ n.score }}/10{{ n.highlight ? ' — “' + n.highlight + '”' : '' }}</dd> }
+      </dl>
+    </div>
+    <p><a [href]="b.manage_url" target="_blank" rel="noopener">Abrir “Minha visita” do candidato</a></p>
+
+    <h3>Histórico</h3>
+    <ol class="timeline">
+      @for (e of b.events; track e.id) {
+        <li [class.manual]="e.is_manual">
+          <time>{{ dateTime(e.created_at) }}</time>
+          <span>{{ eventLabel(e) }}</span>
+          @if (e.is_manual) { <span class="pill warn">manual</span> }
+        </li>
+      }
+    </ol>
+
+    <h3>Mensagens</h3>
+    @if (b.notifications.length) {
+      <table class="tbl">
+        <tbody>
+          @for (n of b.notifications; track n.id) {
+            <tr><td class="mono">{{ n.template_code }}</td><td>{{ n.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail' }}</td>
+              <td>{{ n.subject }}</td><td><app-status [status]="n.status" /></td><td class="nowrap">{{ dateTime(n.sent_at) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    } @else { <p class="muted">Nenhuma.</p> }
+
+    @if (b.crm.length) {
+      <h3>Sincronização com o CRM</h3>
+      <table class="tbl">
+        <tbody>
+          @for (c of b.crm; track $index) {
+            <tr><td>{{ c.operation }}</td><td><app-status [status]="c.status" /></td><td>{{ c.attempts }} tentativa(s)</td><td>{{ c.last_error || '' }}</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions class="actions-bar">
+    <div class="group">
+      @if (active()) {
+        <button mat-stroked-button (click)="reschedule()"><mat-icon>event_repeat</mat-icon> Reagendar</button>
+        <button mat-stroked-button (click)="assign()"><mat-icon>person_add</mat-icon> Trocar embaixador</button>
+      }
+      @if (canMarkAttendance()) {
+        <button mat-stroked-button (click)="attendance(true)"><mat-icon>how_to_reg</mat-icon> Compareceu</button>
+        <button mat-stroked-button (click)="attendance(false)"><mat-icon>person_off</mat-icon> Não compareceu</button>
+      }
+      <button mat-stroked-button [matMenuTriggerFor]="more"><mat-icon>more_horiz</mat-icon> Mais</button>
+      <mat-menu #more="matMenu">
+        @for (c of templates; track c) {
+          <button mat-menu-item (click)="resend(c)"><mat-icon>forward_to_inbox</mat-icon> Reenviar mensagem {{ c }}</button>
+        }
+        <a mat-menu-item [href]="'/api/admin/lgpd/' + b.id + '/export'"><mat-icon>download</mat-icon> Exportar dados (LGPD)</a>
+        @if (!active() && !b.anonymized) {
+          <button mat-menu-item (click)="anonymize()"><mat-icon>person_remove</mat-icon> Anonimizar titular</button>
+        }
+      </mat-menu>
+    </div>
+    <div class="group">
+      @if (active()) { <button mat-button class="danger-text" (click)="cancel()">Cancelar visita</button> }
+      <button mat-flat-button mat-dialog-close>Fechar</button>
+    </div>
+  </mat-dialog-actions>
+} @else {
+  <mat-dialog-content><mat-progress-bar mode="indeterminate" /></mat-dialog-content>
+}

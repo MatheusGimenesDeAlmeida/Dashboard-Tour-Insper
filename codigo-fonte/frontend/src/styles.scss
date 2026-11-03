@@ -127,3 +127,37 @@ img { max-width: 100%; display: block; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 :focus-visible { outline: 3px solid color-mix(in srgb, var(--red) 45%, transparent); outline-offset: 2px; }
+
+// ---------------------------------------------------------------- painel de Admissões (classes usadas por várias seções)
+.adm-head {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+  h1 { font-size: clamp(28px, 3.4vw, 36px); margin: 0; }
+  .eyebrow { margin-bottom: 6px; &::first-letter { text-transform: uppercase; } }
+  .tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  p.muted { margin: 6px 0 0; flex-basis: 100%; }
+}
+.sec { font-family: var(--sans); font-size: 17px; font-weight: 600; margin: 0 0 14px; }
+.mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-weight: 600; letter-spacing: .02em; }
+
+.tbl-wrap { background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow-x: auto; }
+.tbl {
+  width: 100%; border-collapse: collapse; font-size: 14px; color: var(--ink);
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+       padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .nowrap { white-space: nowrap; }
+  small { color: var(--muted); }
+  tr.click { cursor: pointer; &:hover td { background: var(--mat-sys-surface-container-low); } &:focus-visible { outline-offset: -3px; } }
+}
+
+.filters {
+  display: flex; flex-wrap: wrap; gap: 0 12px; align-items: flex-start; background: var(--card); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow); padding: 18px 18px 4px; margin-bottom: 16px;
+  mat-form-field { width: 170px; }
+  .grow { flex: 1; min-width: 220px; }
+  .btns { display: flex; gap: 8px; padding-top: 4px; padding-bottom: 14px; }
+}
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 20px; color: var(--muted); text-align: center;
+  mat-icon { font-size: 40px; width: 40px; height: 40px; color: var(--line); } }

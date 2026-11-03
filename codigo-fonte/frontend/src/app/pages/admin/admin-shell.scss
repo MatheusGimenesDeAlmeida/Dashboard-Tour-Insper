@@ -1,0 +1,36 @@
+:host { display: flex; flex-direction: column; height: 100vh; }
+
+.bar {
+  flex: none; height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 20px;
+  background: var(--ink); color: #fff; z-index: 3;
+}
+.menu-btn { color: #fff; margin-left: -8px; }
+.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: #fff; }
+.logo { font-family: var(--serif); font-weight: 700; font-size: 23px; letter-spacing: -.02em; }
+.dot { color: var(--red); }
+.area { font-size: 14px; color: rgba(255, 255, 255, .65); padding-left: 10px; border-left: 1px solid rgba(255, 255, 255, .2); }
+.right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.link { display: flex; align-items: center; gap: 6px; color: rgba(255, 255, 255, .8); text-decoration: none; font-size: 14px;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; } &:hover { color: #fff; } }
+.who { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255, 255, 255, .85); }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--red); display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+.out { --mat-button-outlined-label-text-color: #fff; --mat-button-outlined-outline-color: rgba(255, 255, 255, .3);
+  --mat-button-outlined-container-height: 34px !important; }
+@media (max-width: 600px) { .hide-sm { display: none; } .bar { padding: 0 12px; } }
+
+.container { flex: 1; background: var(--page); }
+.nav { width: 248px; border-right: 1px solid var(--line); background: var(--card); --mat-sidenav-container-shape: 0; }
+nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; text-decoration: none;
+  color: var(--ink-2); font-weight: 500; font-size: 15px;
+  mat-icon { color: var(--muted); }
+  &:hover { background: var(--mat-sys-surface-container-low); color: var(--ink); }
+  &.on { background: var(--red-soft); color: var(--red-dark); font-weight: 600; mat-icon { color: var(--red); font-variation-settings: 'FILL' 1; } }
+}
+.count { margin-left: auto; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--red); color: #fff;
+  font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.muted-item { font-size: 14px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 10px 4px; }
+
+.content { padding: 28px clamp(16px, 3vw, 40px) 64px; }

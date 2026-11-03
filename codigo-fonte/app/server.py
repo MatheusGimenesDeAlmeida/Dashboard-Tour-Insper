@@ -1023,8 +1023,9 @@ PAGES = [
 # Telas já migradas para o Angular (pasta frontend/, compilada em web/browser/ com `npm run build`).
 # Enquanto web/ não existir, valem as páginas antigas de PAGES. Ao migrar outra tela, inclua a rota aqui.
 WEB_DIR = os.path.join(core.BASE_DIR, "web", "browser")
-SPA_PAGES = [re.compile(p) for p in (
-    r"^/$", r"^/agendar/?$", r"^/minha-visita/[\w\-\.]+/?$", r"^/nps/(grupo/)?[\w\-\.]+/?$",
+SPA_PAGES = [(re.compile(p), role) for p, role in (
+    (r"^/$", None), (r"^/agendar/?$", None), (r"^/minha-visita/[\w\-\.]+/?$", None), (r"^/nps/(grupo/)?[\w\-\.]+/?$", None),
+    (r"^/admin(/[\w\-]+)*/?$", "admissions"),
 )]
 
 
@@ -1072,12 +1073,17 @@ class Handler(BaseHTTPRequestHandler):
         with open(path, "rb") as f:
             return Response(200, f.read(), ctype, {"Cache-Control": cache})
 
-    def _web(self, path):
+    def _web(self, conn, path):
         """Páginas e arquivos do Angular; None quando o caminho não é dele."""
         if not os.path.isdir(WEB_DIR):
             return None
-        if any(rx.match(path) for rx in SPA_PAGES):
-            return self._static("index.html", WEB_DIR)
+        for rx, role in SPA_PAGES:
+            if rx.match(path):
+                if role:
+                    user = self._user(conn)
+                    if not user or user["role"] != role:
+                        return Response(302, b"", "text/plain", {"Location": f"/login?next={path}"})
+                return self._static("index.html", WEB_DIR)
         rel = path.lstrip("/")
         if rel and os.path.isfile(os.path.join(WEB_DIR, rel)):
             # .js e .css do build têm hash no nome, então podem ficar em cache por muito tempo
@@ -1093,7 +1099,7 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/static/"):
                 return self._send(self._static(path[len("/static/"):]))
             if method == "GET":
-                web = self._web(path)
+                web = self._web(conn, path)
                 if web:
                     return self._send(web)
                 for rx, page, role in PAGES:
