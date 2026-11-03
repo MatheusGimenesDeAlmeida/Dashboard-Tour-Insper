@@ -1025,7 +1025,8 @@ PAGES = [
 WEB_DIR = os.path.join(core.BASE_DIR, "web", "browser")
 SPA_PAGES = [(re.compile(p), role) for p, role in (
     (r"^/$", None), (r"^/agendar/?$", None), (r"^/minha-visita/[\w\-\.]+/?$", None), (r"^/nps/(grupo/)?[\w\-\.]+/?$", None),
-    (r"^/admin(/[\w\-]+)*/?$", "admissions"),
+    (r"^/login/?$", None), (r"^/caixa-de-entrada/?$", None), (r"^/embed/?$", None),
+    (r"^/admin(/[\w\-]+)*/?$", "admissions"), (r"^/embaixador(/[\w\-]+)*/?$", "ambassador"),
 )]
 
 

@@ -1,0 +1,162 @@
+@if (st(); as s) {
+  <header class="hello">
+    <p class="eyebrow">Portal do embaixador</p>
+    <h1>Olá, {{ first() }}!</h1>
+  </header>
+
+  <!-- Nível -->
+  <section class="tier" [style.--tier]="level().lvl.color">
+    <div class="tier-head">
+      <span class="medal"><mat-icon>workspace_premium</mat-icon></span>
+      <div class="tier-name"><small>Seu nível neste semestre</small><strong>Embaixador {{ level().lvl.name }}</strong></div>
+      <div class="pts"><b>{{ level().pts }}</b><span>pontos</span></div>
+    </div>
+    <div class="bar" role="progressbar" [attr.aria-valuenow]="level().pct" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso até o próximo nível">
+      <span [style.width.%]="level().pct"></span>
+    </div>
+    <div class="tier-foot">
+      @if (level().next; as n) {
+        <span>Faltam <strong>{{ n.min - level().pts }} pontos</strong> para {{ n.name }}</span>
+        <span>Próximo benefício: {{ n.perks[0] }}</span>
+      } @else { <span>Nível máximo. Obrigado por receber tantos candidatos!</span> }
+    </div>
+  </section>
+
+  <!-- Convite novo -->
+  @if (invites()[0]; as inv) {
+    <section class="block">
+      <h2 class="sec">Novo convite @if (invites().length > 1) { <span class="badge">{{ invites().length }}</span> }</h2>
+      <app-offer [inv]="inv" [now]="now()" [withPeople]="false" (accept)="respond($event, true)" (decline)="respond($event, false)" />
+    </section>
+  }
+
+  <!-- Oportunidades -->
+  @if (opp(); as o) {
+    @if (o.claimable.length || o.hot.length) {
+      <section class="block">
+        <div class="sec-head"><h2 class="sec">Oportunidades</h2><span class="muted">Pontos extras em horários em alta</span></div>
+        <div class="card list">
+          @for (c of o.claimable.slice(0, 3); track c.group_id) {
+            <div class="row">
+              <span class="ic red"><mat-icon>report</mat-icon></span>
+              <span class="tx"><strong>{{ dayOf(c.slot_start) }}, {{ timeOf(c.slot_start) }}</strong>
+                <small>Grupo sem embaixador · {{ c.people }} pessoa(s) · {{ c.courses.join(', ') }}</small></span>
+              <span class="gain">+{{ s.game.rules.tour + (c.hot ? s.game.rules.hot : 0) }} pts</span>
+              <button mat-flat-button (click)="claim(c.group_id)">Assumir</button>
+            </div>
+          }
+          @for (h of o.hot; track h.slot_start) {
+            <div class="row">
+              <span class="ic amber"><mat-icon>local_fire_department</mat-icon></span>
+              <span class="tx"><strong>{{ dateLong(h.date) }}, {{ hhmm(h.time) }}</strong><small>Horário em alta · {{ h.booked }} pessoa(s) já agendada(s)</small></span>
+              <span class="gain">+{{ s.game.rules.hot }} bônus</span>
+              <button mat-stroked-button (click)="addHot(h.date, h.time)">Ficar disponível</button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  <!-- Ritmo -->
+  <section class="block">
+    <h2 class="sec">Seu ritmo</h2>
+    <div class="rhythm">
+      <div class="card streak" [class.zero]="!s.game.streak">
+        <span class="flame"><mat-icon>local_fire_department</mat-icon></span>
+        <div>
+          <div class="streak-n">{{ s.game.streak }}<span>{{ s.game.streak === 1 ? ' semana' : ' semanas' }}</span></div>
+          <p class="muted">{{ s.game.this_week ? 'Esta semana já conta. Continue assim!' : s.game.streak ? 'Faça um tour esta semana para não perder a sequência.' : 'Conduza um tour esta semana para começar uma sequência.' }}</p>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="card tile"><span><mat-icon>calendar_month</mat-icon>Tours no mês</span><b>{{ s.tours_month }}</b></div>
+        <div class="card tile"><span><mat-icon>groups</mat-icon>Pessoas recebidas</span><b>{{ s.people_total }}</b></div>
+        <div class="card tile"><span><mat-icon>thumb_up</mat-icon>Convites aceitos</span><b>{{ s.accept_rate === null ? '—' : s.accept_rate + '%' }}</b></div>
+        <div class="card tile"><span><mat-icon>star</mat-icon>Nota média</span><b>{{ s.rating_avg === null ? '—' : num(s.rating_avg) }}</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Desafios -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Desafios do mês</h2><span class="muted">{{ challengesDone() }} de {{ s.game.challenges.length }} concluídos</span></div>
+    <div class="challenges">
+      @for (c of s.game.challenges; track c.id) {
+        <div class="card ch" [class.done]="c.progress >= c.goal">
+          <span class="ch-ic"><mat-icon>{{ challengeIcon(c.id, c.progress >= c.goal) }}</mat-icon></span>
+          <div class="ch-main">
+            <strong>{{ c.title }}</strong>
+            <div class="ch-bar"><span [style.width.%]="(100 * c.progress) / c.goal"></span></div>
+            <small>{{ c.progress >= c.goal ? 'Concluído' : (c.progress < c.goal ? c.progress : c.goal) + ' de ' + c.goal }}</small>
+          </div>
+          <span class="gain">+{{ c.reward }} pts</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Requisitos e pontos -->
+  <div class="two block">
+    <section>
+      <h2 class="sec">Para manter o nível</h2>
+      <div class="card list">
+        @for (r of requirements(); track r.title) {
+          <div class="row">
+            <span class="ic" [class.green]="r.ok" [class.red]="!r.ok"><mat-icon>{{ r.ok ? 'check' : 'priority_high' }}</mat-icon></span>
+            <span class="tx"><strong>{{ r.title }}</strong><small>{{ r.goal }}</small></span>
+            <span class="val">{{ r.value }}</span>
+          </div>
+        }
+      </div>
+      <p class="note">O nível é recalculado a cada semestre.</p>
+    </section>
+    <section>
+      <h2 class="sec">Como ganhar pontos</h2>
+      <div class="card list">
+        @for (e of earnings(); track e.title) {
+          <div class="row">
+            <span class="ic gray"><mat-icon>{{ e.icon }}</mat-icon></span>
+            <span class="tx"><strong>{{ e.title }}</strong><small>{{ e.total }} pts neste semestre</small></span>
+            <span class="gain">+{{ e.pts }} pts</span>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Benefícios -->
+  <section class="block">
+    <h2 class="sec">Benefícios</h2>
+    <div class="ladder">
+      @for (l of levels; track l.name) {
+        <div class="card rung" [class.locked]="level().pts < l.min" [class.current]="l === level().lvl" [style.--tier]="l.color">
+          <span class="medal"><mat-icon>{{ level().pts >= l.min ? 'workspace_premium' : 'lock' }}</mat-icon></span>
+          <div class="rung-main">
+            <strong>{{ l.name }}</strong><small>{{ l.min ? 'a partir de ' + l.min + ' pts' : 'desde o primeiro tour' }}</small>
+            <ul>@for (p of l.perks; track p) { <li>{{ p }}</li> }</ul>
+          </div>
+          @if (l === level().lvl) { <span class="pill ok">Seu nível</span> }
+          @else if (level().pts >= l.min) { <span class="pill">liberado</span> }
+          @else { <span class="pill">faltam {{ l.min - level().pts }} pts</span> }
+        </div>
+      }
+    </div>
+    <p class="note">Benefícios além do brinde e do voucher são exemplos para Admissões definir.</p>
+  </section>
+
+  <!-- Conquistas -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Conquistas</h2><span class="muted">{{ earned() }} de {{ badges().length }}</span></div>
+    <div class="badges">
+      @for (b of badges(); track b.title) {
+        <div class="card bdg" [class.off]="!b.earned">
+          <span class="bi"><mat-icon>{{ b.earned ? b.icon : 'lock' }}</mat-icon></span>
+          <strong>{{ b.title }}</strong><small>{{ b.how }}</small>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <mat-progress-bar mode="indeterminate" aria-label="Carregando" />
+}

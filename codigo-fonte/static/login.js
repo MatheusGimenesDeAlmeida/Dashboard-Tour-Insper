@@ -31,7 +31,10 @@
         h("a", { href: "/caixa-de-entrada" }, "caixa de entrada local"), "."),
       h("div", { class: "btns" }, r.users.map((u) => h("button", { class: "btn small" + (u.role === "admissions" ? " dark" : ""), onclick: async () => {
         const res = await api("POST", "/api/auth/dev-login", { email: u.email });
-        location.href = next && next.startsWith("/") && ((u.role === "admissions") === next.startsWith("/admin")) ? next : res.redirect;
+        // "//site.com" e "/\site.com" levariam para outro site: só aceita caminhos internos da área do perfil
+        const area = u.role === "admissions" ? "/admin" : "/embaixador";
+        const ok = next && /^\/[^/\\]/.test(next) && (next === area || next.startsWith(area + "/"));
+        location.href = ok ? next : res.redirect;
       } }, `${u.name} · ${u.role === "admissions" ? "Admissões" : "Embaixador"}`)))));
   });
 })();

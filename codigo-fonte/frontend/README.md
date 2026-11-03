@@ -3,7 +3,7 @@
 Interface nova da plataforma, em Angular 21 + Angular Material. Ela conversa com a mesma API do servidor
 Python (`../app/server.py`), sem mudar nenhuma regra de negócio.
 
-## Telas migradas
+## Telas
 
 | Rota | Arquivo |
 |---|---|
@@ -11,14 +11,19 @@ Python (`../app/server.py`), sem mudar nenhuma regra de negócio.
 | `/agendar` (e `/agendar?reagendar=<token>`) | `src/app/pages/booking/` |
 | `/minha-visita/<token>` | `src/app/pages/my-visit/` |
 | `/nps/<token>` e `/nps/grupo/<token>` | `src/app/pages/nps/` |
+| `/login` | `src/app/pages/login/` |
 | `/admin/...` (painel de Admissões, só com login de Admissões) | `src/app/pages/admin/` |
+| `/embaixador/...` (portal do embaixador, só com login de embaixador) | `src/app/pages/ambassador/` |
+| `/caixa-de-entrada` | `src/app/pages/inbox/` |
+| `/embed` | `src/app/pages/embed/` |
 
 No painel, cada seção do menu é um arquivo em `pages/admin/` (`overview`, `agenda`, `bookings`, `exceptions`,
-`ambassadors`, `settings`, `templates`, `health`), e os diálogos ficam em `dialogs.ts`.
+`ambassadors`, `settings`, `templates`, `health`), e os diálogos ficam em `dialogs.ts`. No portal do embaixador,
+o Início fica em `amb-home`, as outras abas em `amb-pages.ts` e os cartões de convite e de tour em `amb-cards.ts`.
 
-Login, portal do embaixador, caixa de entrada e embed continuam nas páginas antigas
-(`../static/`) até serem migrados. Ao migrar uma tela, inclua a rota em `src/app/app.routes.ts` **e** em
-`SPA_PAGES` no `app/server.py`.
+Toda tela nova precisa da rota em `src/app/app.routes.ts` **e** em `SPA_PAGES` no `app/server.py`.
+
+As páginas antigas em `../static/` só aparecem se o Angular não tiver sido compilado (sem a pasta `../web/`).
 
 ## Onde mexer
 

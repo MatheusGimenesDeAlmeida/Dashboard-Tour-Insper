@@ -14,11 +14,15 @@ import { filter, map } from 'rxjs';
 export class App {
   private router = inject(Router);
 
-  /** O painel de Admissões tem cabeçalho próprio; o do site público some ali. */
+  /** O painel de Admissões e o portal do embaixador têm cabeçalho próprio; o do site público some ali. */
   protected isAdmin = toSignal(
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => this.router.url.startsWith('/admin'))),
-    { initialValue: location.pathname.startsWith('/admin') },
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => App.ownShell(this.router.url))),
+    { initialValue: App.ownShell(location.pathname) },
   );
+
+  private static ownShell(url: string) {
+    return url.startsWith('/admin') || url.startsWith('/embaixador');
+  }
 
   constructor() {
     // Ícones: fonte Material Symbols (carregada no index.html)

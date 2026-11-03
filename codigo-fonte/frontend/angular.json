@@ -54,7 +54,10 @@
             "styles": [
               "src/styles.scss"
             ],
-            "outputPath": "../web"
+            "outputPath": "../web",
+            "allowedCommonJsDependencies": [
+              "qrcode"
+            ]
           },
           "configurations": {
             "production": {

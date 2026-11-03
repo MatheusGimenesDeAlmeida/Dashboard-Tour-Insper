@@ -4,8 +4,8 @@ Protótipo v1 com dados fictícios. Duas partes:
 
 - **`codigo-fonte/`**: plataforma com servidor (Python só com biblioteca padrão + SQLite). Detalhes em
   [`codigo-fonte/README.md`](codigo-fonte/README.md).
-- **`codigo-fonte/frontend/`**: interface nova em Angular + Angular Material (início, agendamento, minha visita,
-  avaliação e painel de Admissões). As outras telas ainda usam as páginas de `codigo-fonte/static/`. Veja
+- **`codigo-fonte/frontend/`**: interface em Angular + Angular Material com todas as telas (candidato, login,
+  painel de Admissões, portal do embaixador, caixa de entrada e embed). Veja
   [`codigo-fonte/frontend/README.md`](codigo-fonte/frontend/README.md).
 - **`simulador-tour-insper.html`**: versão autônoma que roda direto no navegador. Também é servida em `/simulador`.
 

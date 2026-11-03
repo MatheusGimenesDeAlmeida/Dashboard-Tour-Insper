@@ -1,0 +1,73 @@
+.hello h1 { margin-bottom: 18px; }
+.block { margin-top: 28px; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; .sec { margin: 0; } }
+.badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--red); color: #fff; font: 700 12px var(--sans); margin-left: 6px; }
+.note { font-size: 13px; color: var(--muted); margin: 10px 4px 0; }
+.gain { font-weight: 700; font-size: 14px; color: var(--ok); white-space: nowrap; }
+
+// Nível
+.tier {
+  --tier: #d29a68;
+  background: radial-gradient(600px 220px at 100% 0%, color-mix(in srgb, var(--tier) 45%, transparent), transparent 70%), var(--ink);
+  color: #fff; border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-up);
+}
+.tier-head { display: flex; align-items: center; gap: 14px; }
+.medal { width: 52px; height: 52px; border-radius: 50%; background: var(--tier); color: var(--ink); display: grid; place-items: center; flex: none;
+  mat-icon { font-size: 30px; width: 30px; height: 30px; font-variation-settings: 'FILL' 1; } }
+.tier-name { flex: 1; small { display: block; color: rgba(255, 255, 255, .65); font-size: 13px; } strong { font-family: var(--serif); font-size: 26px; } }
+.pts { text-align: right; b { display: block; font-family: var(--serif); font-size: 34px; line-height: 1; } span { font-size: 12px; color: rgba(255, 255, 255, .65); } }
+.bar { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, .15); margin: 18px 0 12px; overflow: hidden;
+  span { display: block; height: 100%; border-radius: 999px; background: var(--tier); } }
+.tier-foot { display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; font-size: 14px; color: rgba(255, 255, 255, .8); strong { color: #fff; } }
+
+// Linhas de lista (oportunidades, requisitos, pontos)
+.list { padding: 6px 16px; }
+.row { display: flex; align-items: center; gap: 14px; padding: 12px 0; flex-wrap: wrap;
+  & + & { border-top: 1px solid var(--line); }
+  .tx { flex: 1; min-width: 180px; display: flex; flex-direction: column; strong::first-letter { text-transform: uppercase; } small { color: var(--muted); font-size: 13px; } }
+  .val { font-weight: 700; } }
+.ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--mat-sys-surface-container); color: var(--ink-2);
+  &.red { background: var(--err-soft); color: var(--err); } &.amber { background: var(--yellow-soft); color: #8a6100; }
+  &.green { background: var(--ok-soft); color: var(--ok); } }
+
+// Ritmo
+.rhythm { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
+@media (max-width: 760px) { .rhythm { grid-template-columns: 1fr; } }
+.streak { display: flex; align-items: center; gap: 16px;
+  .flame { width: 64px; height: 64px; border-radius: 50%; background: #fff1e0; color: #f06b00; display: grid; place-items: center; flex: none;
+    mat-icon { font-size: 36px; width: 36px; height: 36px; font-variation-settings: 'FILL' 1; } }
+  &.zero .flame { background: var(--mat-sys-surface-container); color: var(--muted); }
+  .streak-n { font-family: var(--serif); font-size: 36px; font-weight: 700; line-height: 1; span { font: 500 16px var(--sans); color: var(--ink-2); } }
+  p { margin: 6px 0 0; font-size: 14px; } }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  span { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); mat-icon { font-size: 18px; width: 18px; height: 18px; } }
+  b { font-family: var(--serif); font-size: 28px; } }
+
+// Desafios
+.challenges { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.ch { display: flex; align-items: center; gap: 14px; padding: 16px;
+  .ch-ic { width: 40px; height: 40px; border-radius: 50%; background: var(--mat-sys-surface-container); display: grid; place-items: center; flex: none; }
+  .ch-main { flex: 1; min-width: 0; strong { font-size: 14px; } small { color: var(--muted); font-size: 12px; } }
+  .ch-bar { height: 6px; border-radius: 4px; background: var(--mat-sys-surface-container); margin: 6px 0 4px; overflow: hidden;
+    span { display: block; height: 100%; background: #2a78d6; border-radius: 4px; } }
+  &.done { .ch-ic { background: var(--ok-soft); color: var(--ok); } .ch-bar span { background: var(--ok); } } }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+
+// Benefícios
+.ladder { display: grid; gap: 10px; }
+.rung { --tier: #d29a68; display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; flex-wrap: wrap;
+  .medal { width: 40px; height: 40px; mat-icon { font-size: 22px; width: 22px; height: 22px; } }
+  .rung-main { flex: 1; min-width: 200px; small { color: var(--muted); font-size: 13px; margin-left: 6px; } ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); } }
+  &.current { outline: 2px solid var(--tier); }
+  &.locked { .medal { background: var(--mat-sys-surface-container); color: var(--muted); } .rung-main { opacity: .7; } } }
+
+// Conquistas
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.bdg { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 18px 12px;
+  .bi { width: 52px; height: 52px; border-radius: 50%; background: var(--yellow-soft); color: #8a6100; display: grid; place-items: center; margin-bottom: 6px;
+    mat-icon { font-variation-settings: 'FILL' 1; } }
+  strong { font-size: 14px; } small { color: var(--muted); font-size: 12px; }
+  &.off { .bi { background: var(--mat-sys-surface-container); color: var(--muted); mat-icon { font-variation-settings: 'FILL' 0; } } strong { color: var(--muted); } } }
