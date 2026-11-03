@@ -6,9 +6,11 @@ e cancelamento por link, presença, NPS com QR code, encerramento no CRM e paine
 
 ## Como rodar
 
-Só precisa do Python 3.9+ que já vem no macOS. Não há dependências para instalar.
+O servidor só precisa do Python 3.9+, sem dependências. As telas são em Angular e precisam ser compiladas uma vez,
+com o Node 22.12+ (detalhes em [`frontend/README.md`](frontend/README.md)):
 
 ```bash
+cd frontend && npm install && npm run build && cd ..   # gera web/ (refaça depois de mudar as telas)
 python3 run.py            # http://localhost:8000 (na 1ª vez cria o banco com dados fictícios)
 python3 run.py --reset    # apaga o banco e recria com os dados de exemplo
 python3 -m unittest discover -s tests -t . -v   # testes dos critérios de aceite

@@ -45,7 +45,11 @@ Os endereços fictícios dos dados de exemplo (`@exemplo.com`) continuam só na 
 
 ## Rodar localmente
 
+Precisa de Python 3.9+ e Node 22.12+.
+
 ```bash
-cd codigo-fonte
-python3 run.py            # http://localhost:8000
+cd codigo-fonte/frontend
+npm install && npm run build   # compila as telas em codigo-fonte/web/
+cd ..
+python3 run.py                 # http://localhost:8000
 ```

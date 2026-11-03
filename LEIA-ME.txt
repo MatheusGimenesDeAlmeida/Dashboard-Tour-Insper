@@ -1,5 +1,8 @@
 Plataforma de Agendamento de Tour no Campus - Insper (v1)
 
+0) NO AR
+   https://tour-insper.onrender.com (pode levar ~50 s para abrir se ficou parado)
+
 1) SIMULADOR (para testar)
    Abra "simulador-tour-insper.html" com dois cliques (Chrome recomendado).
    Funciona sem internet e sem instalar nada (as fotos do Insper precisam de internet).
@@ -7,7 +10,11 @@ Plataforma de Agendamento de Tour no Campus - Insper (v1)
    Cada navegador guarda a propria simulacao.
 
 2) CODIGO-FONTE (versao com servidor)
-   Requer Python 3.9 ou superior. No terminal, dentro da pasta codigo-fonte:
+   Requer Python 3.9 ou superior e Node 22.12 ou superior. No terminal, dentro da pasta codigo-fonte:
+       cd frontend
+       npm install
+       npm run build
+       cd ..
        python3 run.py
    Depois abra http://localhost:8000
-   Testes: python3 -m unittest discover tests
+   Testes: python3 -m unittest discover -s tests -t .

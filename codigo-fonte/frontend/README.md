@@ -23,7 +23,8 @@ o Início fica em `amb-home`, as outras abas em `amb-pages.ts` e os cartões de 
 
 Toda tela nova precisa da rota em `src/app/app.routes.ts` **e** em `SPA_PAGES` no `app/server.py`.
 
-As páginas antigas em `../static/` só aparecem se o Angular não tiver sido compilado (sem a pasta `../web/`).
+Sem a pasta `../web/` (Angular não compilado), o servidor mostra uma página explicando como compilar. A pasta
+`../static/` guarda só o simulador, que funciona sem compilar nada.
 
 ## Onde mexer
 

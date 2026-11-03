@@ -1007,22 +1007,23 @@ def dev_inbox_attachment(req, nid, idx):
 
 
 # ================================================================ páginas
+# Páginas avulsas em static/. Hoje só o simulador, que funciona sozinho no navegador.
 PAGES = [
-    (re.compile(r"^/$"), "index.html", None),
-    (re.compile(r"^/agendar/?$"), "agendar.html", None),
-    (re.compile(r"^/minha-visita/[\w\-\.]+/?$"), "minha-visita.html", None),
-    (re.compile(r"^/nps/(grupo/)?[\w\-\.]+/?$"), "nps.html", None),
-    (re.compile(r"^/login/?$"), "login.html", None),
-    (re.compile(r"^/embaixador/?$"), "embaixador.html", "ambassador"),
-    (re.compile(r"^/admin/?$"), "admin.html", "admissions"),
-    (re.compile(r"^/caixa-de-entrada/?$"), "inbox.html", None),
-    (re.compile(r"^/embed/?$"), "embed.html", None),
-    (re.compile(r"^/simulador/?$"), "simulador-tour-insper.html", None),
+    (re.compile(r"^/simulador/?$"), "simulador-tour-insper.html"),
 ]
 
-# Telas já migradas para o Angular (pasta frontend/, compilada em web/browser/ com `npm run build`).
-# Enquanto web/ não existir, valem as páginas antigas de PAGES. Ao migrar outra tela, inclua a rota aqui.
+# Telas da plataforma, em Angular (pasta frontend/, compilada em web/browser/ com `npm run build`).
+# Ao criar uma tela nova, inclua a rota aqui e em frontend/src/app/app.routes.ts.
 WEB_DIR = os.path.join(core.BASE_DIR, "web", "browser")
+NOT_BUILT = """<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Interface não compilada</title>
+<body style="font:16px/1.6 system-ui,sans-serif;max-width:640px;margin:48px auto;padding:0 20px;color:#0E171D">
+<h1>A interface ainda não foi compilada</h1>
+<p>O servidor está no ar, mas as telas (em Angular) precisam ser geradas uma vez. Com o Node 22 instalado:</p>
+<pre style="background:#F2F2F2;padding:16px;border-radius:8px">cd frontend
+npm install
+npm run build</pre>
+<p>Depois recarregue esta página. Enquanto isso, o <a href="/simulador">simulador</a> funciona sem compilar nada.</p>
+</body></html>"""
 SPA_PAGES = [(re.compile(p), role) for p, role in (
     (r"^/$", None), (r"^/agendar/?$", None), (r"^/minha-visita/[\w\-\.]+/?$", None), (r"^/nps/(grupo/)?[\w\-\.]+/?$", None),
     (r"^/login/?$", None), (r"^/caixa-de-entrada/?$", None), (r"^/embed/?$", None),
@@ -1076,17 +1077,18 @@ class Handler(BaseHTTPRequestHandler):
 
     def _web(self, conn, path):
         """Páginas e arquivos do Angular; None quando o caminho não é dele."""
-        if not os.path.isdir(WEB_DIR):
-            return None
+        built = os.path.isdir(WEB_DIR)
         for rx, role in SPA_PAGES:
             if rx.match(path):
+                if not built:
+                    return Response(503, NOT_BUILT.encode(), "text/html; charset=utf-8")
                 if role:
                     user = self._user(conn)
                     if not user or user["role"] != role:
                         return Response(302, b"", "text/plain", {"Location": f"/login?next={path}"})
                 return self._static("index.html", WEB_DIR)
         rel = path.lstrip("/")
-        if rel and os.path.isfile(os.path.join(WEB_DIR, rel)):
+        if built and rel and os.path.isfile(os.path.join(WEB_DIR, rel)):
             # .js e .css do build têm hash no nome, então podem ficar em cache por muito tempo
             hashed = rel.endswith((".js", ".css"))
             return self._static(rel, WEB_DIR, "public, max-age=31536000, immutable" if hashed else "no-cache")
@@ -1103,12 +1105,8 @@ class Handler(BaseHTTPRequestHandler):
                 web = self._web(conn, path)
                 if web:
                     return self._send(web)
-                for rx, page, role in PAGES:
+                for rx, page in PAGES:
                     if rx.match(path):
-                        if role:
-                            user = self._user(conn)
-                            if not user or user["role"] != role:
-                                return self._send(Response(302, b"", "text/plain", {"Location": f"/login?next={path}"}))
                         return self._send(self._static(page))
             body = {}
             if method in ("POST", "PUT", "PATCH", "DELETE"):
@@ -1120,7 +1118,10 @@ class Handler(BaseHTTPRequestHandler):
                     # exigir JSON também protege contra CSRF de formulários de outros sites
                     if "application/json" not in (self.headers.get("Content-Type") or ""):
                         return self._send(json_resp({"error": "Envie JSON."}, 415))
-                    body = json.loads(raw.decode("utf-8"))
+                    try:
+                        body = json.loads(raw.decode("utf-8"))
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        return self._send(json_resp({"error": "Requisição inválida: envie JSON em UTF-8."}, 400))
             query = parse_qs(url.query)
             for m, rx, fn, role in ROUTES:
                 if m != method:

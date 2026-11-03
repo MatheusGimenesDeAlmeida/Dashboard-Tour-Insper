@@ -1,4 +1,5 @@
 """Testes dos critérios de aceite (seção 18). Rode com:  python3 -m unittest discover -s tests -v"""
+import itertools
 import json
 import os
 import random
@@ -18,11 +19,14 @@ from app.core import iso, now_utc  # noqa: E402
 rng = random.Random(7)
 
 
+_db_count = itertools.count()
+
+
 def fresh_db():
-    for s in ("", "-wal", "-shm"):
-        p = os.environ["DATABASE_PATH"] + s
-        if os.path.exists(p):
-            os.remove(p)
+    # Um arquivo novo por teste, em vez de apagar o anterior: no Windows não dá para apagar um banco que
+    # ainda tem conexão aberta. core.connect() lê core.DATABASE_PATH a cada chamada, então o servidor acompanha.
+    core.DATABASE_PATH = os.path.join(TMP, f"test-{next(_db_count)}.db")
+    os.environ["DATABASE_PATH"] = core.DATABASE_PATH
     core.set_clock_offset(0)
     conn = core.connect()
     core.init_db(conn)
@@ -108,6 +112,9 @@ class FlowTests(unittest.TestCase):
         wd = self.day.weekday()
         self.a1 = add_ambassador(self.conn, "Ana Embaixadora", [(wd, "15:00")], course="Economia")
         self.a2 = add_ambassador(self.conn, "Bruno Embaixador", [(wd, "15:00")])
+
+    def tearDown(self):
+        self.conn.close()
 
     def slot_info(self, party=1):
         return next(s for s in domain.compute_slots(self.conn, self.day, self.day, party) if s["slot_start"] == self.slot)
