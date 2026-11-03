@@ -1,0 +1,13 @@
+Plataforma de Agendamento de Tour no Campus - Insper (v1)
+
+1) SIMULADOR (para testar)
+   Abra "simulador-tour-insper.html" com dois cliques (Chrome recomendado).
+   Funciona sem internet e sem instalar nada (as fotos do Insper precisam de internet).
+   Use a barra de cima para trocar de persona: Candidato, Embaixador, Admissoes, Mensagens.
+   Cada navegador guarda a propria simulacao.
+
+2) CODIGO-FONTE (versao com servidor)
+   Requer Python 3.9 ou superior. No terminal, dentro da pasta codigo-fonte:
+       python3 run.py
+   Depois abra http://localhost:8000
+   Testes: python3 -m unittest discover tests

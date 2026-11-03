@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botão para o site · Insper</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar"><div class="inner"><a class="brand" href="/"><span class="logo">Insper</span><span class="area">Botão para o site</span></a></div></header>
+<main class="wrap narrow">
+  <h1>Botão de agendamento para o site</h1>
+  <p>Para a equipe do site institucional: cole o trecho abaixo na página inicial. Assim o agendamento fica a 1 clique, e não no 3º.</p>
+  <h2>Prévia</h2>
+  <div class="panel" style="margin-bottom:20px">
+    <a href="/agendar" style="display:inline-block;background:#E50505;color:#fff;font:600 16px Inter,Arial,sans-serif;padding:14px 22px;border-radius:4px;text-decoration:none">Agende sua visita ao campus</a>
+  </div>
+  <h2>Código</h2>
+  <pre id="code"></pre>
+  <button class="btn" id="copy">Copiar código</button>
+  <p class="muted" style="margin-top:16px">URL pública do agendamento: <code id="url"></code></p>
+</main>
+<script>
+  const url = location.origin + "/agendar";
+  const code = `<a href="${url}" style="display:inline-block;background:#E50505;color:#fff;font:600 16px Inter,Arial,sans-serif;padding:14px 22px;border-radius:4px;text-decoration:none">Agende sua visita ao campus</a>`;
+  document.getElementById("code").textContent = code;
+  document.getElementById("url").textContent = url;
+  document.getElementById("copy").onclick = () => navigator.clipboard.writeText(code).then(() => { document.getElementById("copy").textContent = "Copiado!"; });
+</script>
+</body>
+</html>

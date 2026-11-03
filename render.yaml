@@ -1,0 +1,25 @@
+# Blueprint do Render: https://render.com/docs/blueprint-spec
+# Servidor Python só com biblioteca padrão + SQLite. No plano gratuito o disco é efêmero:
+# a cada reinício o banco é recriado com os dados fictícios do seed.
+services:
+  - type: web
+    name: tour-insper
+    runtime: python
+    plan: free
+    rootDir: codigo-fonte
+    buildCommand: python --version
+    startCommand: python run.py --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/public/config
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      # "dev" mantém o acesso rápido de demonstração, a caixa de entrada simulada e a simulação de tempo
+      # (o login por link mágico exige SMTP real). Use "prod" quando houver SMTP configurado.
+      - key: APP_ENV
+        value: dev
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: TOKEN_SIGNING_SECRET
+        generateValue: true
+      - key: CPF_ENCRYPTION_KEY
+        generateValue: true
